@@ -10,11 +10,13 @@ public class Food extends Entity {
 	
 	private GlobalData globalData;
 	private int age;
+	private boolean eaten;
 	
 	public Food(int x, int y, Panel p) {
 		super(x, y, p);
 		age = 0;
 		globalData = GlobalData.getInstance();
+		eaten = false;
 	}
 	
 	/*
@@ -39,5 +41,31 @@ public class Food extends Entity {
 	public int getAge() {
 		return age;
 	}
+	
+	/*
+	 Asset eaten
+	 */
+	public void assertEaten() {
+		eaten = true;
+	}
+	
+	/*
+	 Food does not have collision
+	 */
+	public boolean hasCollision() {
+		return false;
+	}
+	
+	/*
+	 Returns true if food is too old or has been eaten
+	 */
+	public boolean isDead() {
+		if (age >= globalData.getMaxFoodAge() || eaten) {
+			return true;
+		}
+		return false;
+	}
+	
+	
 	
 }

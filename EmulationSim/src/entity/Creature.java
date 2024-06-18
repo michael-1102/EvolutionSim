@@ -13,6 +13,12 @@ import main.Panel;
 
 public class Creature extends Entity {
 	
+	Node[][] nodes;
+	Node startNode, goalNode, currentNode;
+	ArrayList<Node> openList;
+	ArrayList<Node> checkedList;
+	boolean goalReached;
+	
 	private GlobalData globalData;
 	private int energy;
 	private int maxEnergy;
@@ -24,13 +30,15 @@ public class Creature extends Entity {
 	/*
 	 Creature constructor
 	 */
-	public Creature(int x, int y, Panel p, int energy, int maxEnergy, int sight) {
+	public Creature(int x, int y, Panel p, int energy, int maxEnergy, int sight, Behavior behavior) {
 		super(x, y, p);
 		this.energy = energy;
 		this.maxEnergy = maxEnergy;
 		this.sight = sight;
-		behavior = Behavior.eat;
+		this.behavior = behavior;
 		globalData = GlobalData.getInstance();
+		
+		nodes = new Node[p.maxScreenCol][p.maxScreenRow];
 	}
 	
 	/*
@@ -39,6 +47,139 @@ public class Creature extends Entity {
 	public void draw(Graphics2D g2) {
 		g2.setColor(Color.red);
 		g2.fillRect(posX*p.tileSize, posY*p.tileSize, p.tileSize, p.tileSize);
+	}
+	
+	private void initializeNodes() {
+		int col = 0;
+		int row = 0;
+		while(col < p.maxScreenCol && row < p.maxScreenRow) {
+				nodes[col][row] = new Node(col, row);
+				col++;
+				if (col == p.maxScreenCol) {
+					col = 0;
+					row++;
+				}
+			
+			
+		}
+	}
+	
+	private void setStartNode(int col, int row) {
+		nodes[col][row].setAsStart();
+		startNode = nodes[col][row];
+		currentNode = startNode;
+	}
+	
+	private void setGoalNode(int col, int row) {
+		nodes[col][row].setAsGoal();
+		goalNode = nodes[col][row];
+	}
+	
+	private void setCostOnNodes() {
+		int col = 0;
+		int row = 0;
+		while(col < p.maxScreenCol && row < p.maxScreenRow) {
+			getCost(nodes[col][row]);	
+			if (!globalData.getEntities().posNotSolid(col, row)) {
+				nodes[col][row].setAsSolid();
+			}
+			col++;
+			if (col == p.maxScreenCol) {
+				col = 0;
+				row++;
+			}
+			
+		}
+	}
+	
+	private void getCost(Node node) {
+		int xDistance = Math.abs(node.col - startNode.col);
+		int yDistance = Math.abs(node.row - startNode.row);
+		node.gCost = xDistance + yDistance; // G = distance from start node
+		
+		xDistance = Math.abs(node.col - goalNode.col);
+		yDistance = Math.abs(node.row - goalNode.row);
+		node.hCost = xDistance + yDistance; // H = distance from goal node
+		
+		node.fCost = node.gCost + node.hCost; // F = G + H
+		
+		
+	}
+	
+	public void search() {
+		while (goalReached == false) {
+			int col = currentNode.col;
+			int row = currentNode.row;
+			
+			currentNode.setAsChecked();
+			checkedList.add(currentNode);
+			openList.remove(currentNode);
+			
+			if (row > 0) {
+				openNode(nodes[col][row-1]); // up
+			}
+			if (col > 0) {
+				openNode(nodes[col-1][row]); // left
+			}
+			if (row < p.maxScreenRow - 1) {
+				openNode(nodes[col][row+1]); // down
+			}
+			if (col < p.maxScreenCol - 1) {
+				openNode(nodes[col+1][row]); // right
+			}
+			
+			// find best node
+			int bestNodeIndex = 0;
+			int bestNodefCost = 999;
+			for (int i = 0; i < openList.size(); i++) {
+				
+				// check F cost
+				if (openList.get(i).fCost < bestNodefCost) {
+					bestNodeIndex = i;
+					bestNodefCost = openList.get(i).fCost;
+				} else if (openList.get(i).fCost == bestNodefCost) {// if F cost equal, check G cost
+					if (openList.get(i).gCost < openList.get(bestNodeIndex).gCost) {
+						bestNodeIndex = i;
+					}
+				}
+			}
+			if (openList.size() > 0)
+				currentNode = openList.get(bestNodeIndex);
+			if (currentNode == goalNode) {
+				goalReached = true;
+			}
+		}
+	}
+	
+	private void openNode(Node node) {
+		if (node.open == false && node.checked == false && node.solid == false) {
+			node.setAsOpen();
+			node.parent = currentNode;
+			openList.add(node);
+		}
+	}
+	
+	private int[] trackPath() {
+		Node current = goalNode;
+		int[] nextStep = {goalNode.col, goalNode.row};
+		while (current != startNode) {
+			current = current.parent;
+			if (current != startNode) {
+				nextStep[0] = current.col;
+				nextStep[1] = current.row;
+			}
+		}
+		return nextStep;
+	}
+	
+	/*
+	 Return true if no energy
+	 */
+	public boolean isDead() {
+		if (energy <= 0) {
+			return true;
+		}
+		return false;
 	}
 	
 	/*
@@ -53,7 +194,6 @@ public class Creature extends Entity {
 		case idle:
 			break;
 		case mate:
-			
 			break;
 		case random:
 			this.moveRandom();
@@ -63,20 +203,22 @@ public class Creature extends Entity {
 			
 		}
 		
-		// check maxScreenColfor food
-		FoodCollection foods = globalData.getFoods();
-		int foodIndex = foods.posHasFood(posX, posY);
+		// check for food
+		EntityCollection entities = globalData.getEntities();
+		int foodIndex = entities.posHasFood(posX, posY);
 		if (foodIndex >= 0) {
-			this.eatFood(foods, foodIndex);
+			this.eatFood(entities, foodIndex);
 		}
 	}
 	
 	
 	/*
-	 Eat food at FoodCollection index
+	 Eat food at EntityCollection index
 	 */
-	private void eatFood(FoodCollection foods, int i) {
-		foods.removeFood(i);
+	private void eatFood(EntityCollection foods, int i) {
+		Food food = (Food) foods.getEntity(i);
+		if (food.isDead()) return;
+		food.assertEaten();
 		energy += globalData.getFoodEnergy();
 		if (energy > maxEnergy)
 			energy = maxEnergy;
@@ -86,29 +228,33 @@ public class Creature extends Entity {
 	 Move creature towards food
 	 */
 	private void moveToFood() {
-		int[] foodPos = BFS(new boolean[p.maxScreenCol][p.maxScreenRow], posX, posY);
+		int[] foodPos = foodBFS(new boolean[p.maxScreenCol][p.maxScreenRow], posX, posY);
 		if (foodPos.length == 2) {
-			int difX = foodPos[0] - posX;
-			int difY = foodPos[1] - posY;
-			if (Math.abs(difX) > Math.abs(difY)) {
-				if (difX > 0) {
-					posX++;
-				} else {
-					posX--;
-				}
-			} else {
-				if (difY > 0) {
-					posY++;
-				} else {
-					posY--;
-				}
-			}
+			
+			int[] nextStep = findNextStep(foodPos);
+			
+			
+			posX = nextStep[0];
+			posY = nextStep[1];
 		} else {
 			this.moveRandom();
 		}
 	}
 	
-	private boolean isValid(boolean visited[][], int x, int y) {
+	//NEEDS FAILSAFE IF THERE IS NO PATH
+	private int[] findNextStep(int[] foodPos) {
+		openList = new ArrayList<Node>();
+		checkedList = new ArrayList<Node>();
+		goalReached = false;
+		this.initializeNodes();
+		this.setStartNode(posX, posY);
+		this.setGoalNode(foodPos[0], foodPos[1]);
+		this.setCostOnNodes();
+		this.search();
+		return trackPath();
+	}
+	
+	private boolean isValidBFS(boolean visited[][], int x, int y) {
 		if (x < 0 || y < 0 || x >= p.maxScreenCol || y>= p.maxScreenRow) {
 			return false;
 		}
@@ -118,7 +264,8 @@ public class Creature extends Entity {
 		return true;
 	}
 	
-	private int[] BFS(boolean visited[][], int x, int y) {
+	
+	private int[] foodBFS(boolean visited[][], int x, int y) {
 		Queue<int[]> q = new LinkedList<>();
 		q.add(new int[] {x,y});
 		visited[x][y] = true;
@@ -126,7 +273,7 @@ public class Creature extends Entity {
 		while (!q.isEmpty()) {
 			foodPos = q.peek();
 			if (Math.abs(foodPos[0] - x) + Math.abs(foodPos[1] - y) > sight) return new int[0];
-			if (globalData.getFoods().posHasFood(foodPos[0], foodPos[1]) >= 0) {
+			if (globalData.getEntities().posHasFood(foodPos[0], foodPos[1]) >= 0) {
 				return foodPos;
 			}
 			
@@ -136,7 +283,7 @@ public class Creature extends Entity {
 			for (int i = 0; i < 4; i++) {
 				int adjx = foodPos[0] + dirX[i];
 				int adjy = foodPos[1] + dirY[i];
-				if (isValid(visited, adjx, adjy)) {
+				if (isValidBFS(visited, adjx, adjy)) {
 					list.add(new int[] {adjx, adjy});
 					visited[adjx][adjy] = true;
 				}
@@ -149,6 +296,7 @@ public class Creature extends Entity {
 		return new int[0];
 	}
 	
+	
 	/*
 	 Move creature randomly
 	 */
@@ -156,7 +304,7 @@ public class Creature extends Entity {
 		int dir = (int)(Math.random() * 4); 
 		switch(dir) {
 			case(0): // 0 = up
-				if (posY == 0) {
+				if (posY <= 0) {
 					moveRandom();
 					return;
 				} else {
@@ -165,7 +313,7 @@ public class Creature extends Entity {
 				}
 				break;
 			case(1): // 1 = right
-				if (posX == p.maxScreenCol - 1) {
+				if (posX >= p.maxScreenCol - 1) {
 					moveRandom();
 					return;
 				} else {
@@ -174,7 +322,7 @@ public class Creature extends Entity {
 				}
 				break;
 			case(2): // 2 = down
-				if (posY == p.maxScreenRow - 1) {
+				if (posY >= p.maxScreenRow - 1) {
 					moveRandom();
 					return;
 				} else {
@@ -183,7 +331,7 @@ public class Creature extends Entity {
 				}
 				break;
 			case(3): // 3 = left
-				if (posX == 0) {
+				if (posX <= 0) {
 					moveRandom();
 					return;
 				} else {
@@ -201,5 +349,13 @@ public class Creature extends Entity {
 	 */
 	public int getEnergy() {
 		return energy;
+	}
+	
+	/*
+	 Creature has collision
+	 */
+	@Override
+	public boolean hasCollision() {
+		return true;
 	}
 }
