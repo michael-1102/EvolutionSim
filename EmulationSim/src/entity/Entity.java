@@ -1,5 +1,7 @@
 package entity;
 
+import java.awt.Graphics2D;
+
 import main.Panel;
 
 public class Entity {
@@ -15,5 +17,33 @@ public class Entity {
 		posX = x;
 		posY = y;
 		this.p = p;
+	}
+	
+	/*
+	 Overridden
+	 */
+	public void draw(Graphics2D g2) {
+		
+	}
+
+	/*
+	 Overridden
+	 */
+	public void update() {
+		
+	}
+	
+	/*
+	 Overridden
+	 */
+	public boolean isDead() {
+		return false;
+	}
+	
+	/*
+	 Overridden
+	 */
+	public boolean hasCollision() {
+		return false;
 	}
 }

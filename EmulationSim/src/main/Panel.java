@@ -6,8 +6,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import javax.swing.JPanel;
 
+import entity.Behavior;
 import entity.Creature;
-import entity.Food;
 
 public class Panel extends JPanel implements Runnable {
     private GlobalData globalData;
@@ -22,9 +22,7 @@ public class Panel extends JPanel implements Runnable {
 	
 	final int screenWidth = tileSize * maxScreenCol;
 	final int screenHeight = tileSize * maxScreenRow;
-	
-	public int foodTimer;
-	
+		
 	Thread thread;
 	
 	/*
@@ -35,7 +33,6 @@ public class Panel extends JPanel implements Runnable {
 		this.setBackground(Color.white);
 		this.setDoubleBuffered(true);
 		globalData = GlobalData.getInstance(this);
-		foodTimer = 0;
 	}
 	
 	/*
@@ -74,28 +71,26 @@ public class Panel extends JPanel implements Runnable {
 	 Set up entities before start
 	 */
 	public void setUpSim() {
-		globalData.getCreatures().addCreature(new Creature(10, 25, this, 100, 1000, 20));
-		globalData.getCreatures().addCreature(new Creature(47, 1, this, 100, 1000, 20));
-		
-		globalData.getFoods().addFood(new Food(2, 3, this));
-		globalData.getFoods().addFood(new Food(20, 43, this));
-		globalData.getFoods().addFood(new Food(14, 23, this));
-		globalData.getFoods().addFood(new Food(2, 33, this));
-		globalData.getFoods().addFood(new Food(23, 6, this));
-		globalData.getFoods().addFood(new Food(40, 30, this));
-		globalData.getFoods().addFood(new Food(1, 34, this));
-		globalData.getFoods().addFood(new Food(30, 30, this));
-		globalData.getFoods().addFood(new Food(40, 13, this));
+		globalData.getEntities().addCreature(new Creature(4, 4, this, 100, 1000, 20, Behavior.eat));
+		globalData.getEntities().addCreature(new Creature(6, 6, this, 100, 1000, 20, Behavior.idle));
+		globalData.getEntities().addCreature(new Creature(6, 5, this, 100, 1000, 20, Behavior.idle));
+		globalData.getEntities().addCreature(new Creature(6, 4, this, 100, 1000, 20, Behavior.idle));
+		globalData.getEntities().addCreature(new Creature(6, 3, this, 100, 1000, 20, Behavior.idle));
+		globalData.getEntities().addCreature(new Creature(6, 2, this, 100, 1000, 20, Behavior.idle));
+		globalData.getEntities().addCreature(new Creature(6, 1, this, 100, 1000, 20, Behavior.idle));
+		globalData.getEntities().addCreature(new Creature(6, 0, this, 100, 1000, 20, Behavior.idle));
+
+
 	}
 	
 	/*
 	 Update information every frame
 	 */
 	public void update() {
-		globalData.getCreatures().update();
-		globalData.getFoods().update();
-		foodTimer++;
+		globalData.getEntities().update();
+		globalData.incrementTime();
 	}
+	
 	
 	/*
 	 Redraw every frame
@@ -104,8 +99,7 @@ public class Panel extends JPanel implements Runnable {
 	public void paintComponent(Graphics g) {
 		super.paintComponent(g);
 		Graphics2D g2 = (Graphics2D) g;
-		globalData.getCreatures().draw(g2);
-		globalData.getFoods().draw(g2);
+		globalData.getEntities().draw(g2);
 		g2.dispose();
 	}
 	
