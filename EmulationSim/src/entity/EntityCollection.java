@@ -9,22 +9,19 @@ import java.util.Queue;
 import java.util.Random;
 
 import main.GlobalData;
-import main.Panel;
 
 public class EntityCollection {
 	private ArrayList<Entity> entities;
 	private GlobalData globalData;
-	private Panel p;
 	static private int dirX[] = { -1, 0, 1, 0 };
 	static private int dirY[] = { 0, 1, 0, -1 };
 	
 	/*
 	 FoodList constructor
 	 */
-	public EntityCollection(Panel p) {
+	public EntityCollection() {
 		entities = new ArrayList<Entity>();
 		globalData = GlobalData.getInstance();
-		this.p = p;
 	}
 	
 	/*
@@ -59,9 +56,10 @@ public class EntityCollection {
 	
 	
 	/*
-	 Update food every frame
+	 Update entities every frame
 	 */
 	public void update() {
+		Collections.shuffle(entities) ;
 		for (Iterator<Entity> iterator = entities.iterator(); iterator.hasNext();) {
 		    Entity entity = iterator.next();
 		    entity.update();
@@ -71,16 +69,16 @@ public class EntityCollection {
 		entities.removeIf(x -> x.isDead());
 		
 		// respawn food
-		if (globalData.getTime() % globalData.getFoodRespawnTime() == 0) {
+		if (globalData.getTimerPanel().getTime() % globalData.getFoodRespawnTime() == 0) {
 			int newX, newY;
 			for (int i = 0; i < globalData.getNumFoodSpawn(); i++) {
 				if (entities.size() >= globalData.getMaxNumFood()) {
 					return;
 				}
-				newX = (int)(Math.random() * p.maxScreenCol); 
-				newY = (int)(Math.random() * p.maxScreenRow);
+				newX = (int)(Math.random() * globalData.maxScreenCol); 
+				newY = (int)(Math.random() * globalData.maxScreenRow);
 				if (!this.posEmpty(newX, newY)) {
-					int[] newPos = emptyBFS(new boolean[p.maxScreenCol][p.maxScreenRow], newX, newY);
+					int[] newPos = emptyBFS(new boolean[globalData.maxScreenCol][globalData.maxScreenRow], newX, newY);
 					if (newPos.length == 2) {
 						newX = newPos[0];
 						newY = newPos[1];
@@ -88,13 +86,13 @@ public class EntityCollection {
 						return;
 					}
 				}
-				addFood(new Food(newX, newY, p));
+				addFood(new Food(newX, newY));
 			}
 		}
 	}
 	
 	private boolean isValid(boolean visited[][], int x, int y) {
-		if (x < 0 || y < 0 || x >= p.maxScreenCol || y>= p.maxScreenRow) {
+		if (x < 0 || y < 0 || x >= globalData.maxScreenCol || y>= globalData.maxScreenRow) {
 			return false;
 		}
 		if (visited[x][y]) {
@@ -152,7 +150,8 @@ public class EntityCollection {
 		for (int i = 0; i < entities.size(); i++) {
 			if (entities.get(i) != null) {
 				if (entities.get(i) instanceof Food && entities.get(i).posX == x && entities.get(i).posY == y) {
-					return i;
+					if (!((Food)entities.get(i)).isDead())
+						return i;
 				}
 			}
 		}

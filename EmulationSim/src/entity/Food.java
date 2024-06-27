@@ -4,7 +4,6 @@ import java.awt.Color;
 import java.awt.Graphics2D;
 
 import main.GlobalData;
-import main.Panel;
 
 public class Food extends Entity {
 	
@@ -12,8 +11,8 @@ public class Food extends Entity {
 	private int age;
 	private boolean eaten;
 	
-	public Food(int x, int y, Panel p) {
-		super(x, y, p);
+	public Food(int x, int y) {
+		super(x, y);
 		age = 0;
 		globalData = GlobalData.getInstance();
 		eaten = false;
@@ -32,7 +31,7 @@ public class Food extends Entity {
 	public void draw(Graphics2D g2) {
 		g2.setColor(new Color((int)(255*(0.5*age/globalData.getMaxFoodAge())), (int)(255*(1-1.0*age/globalData.getMaxFoodAge())), 0));
 		
-		g2.fillRect(posX*p.tileSize+p.tileSize/4, posY*p.tileSize+p.tileSize/4, p.tileSize/2, p.tileSize/2);
+		g2.fillRect(posX*globalData.tileSize+globalData.tileSize/4, posY*globalData.tileSize+globalData.tileSize/4, globalData.tileSize/2, globalData.tileSize/2);
 	}
 
 	/*

@@ -2,21 +2,16 @@ package entity;
 
 import java.awt.Graphics2D;
 
-import main.Panel;
-
 public class Entity {
 
 	protected int posX;
 	protected int posY;
-	protected Panel p;
-
 	/*
 	 Entity constructor
 	 */
-	public Entity(int x, int y, Panel p) {
+	public Entity(int x, int y) {
 		posX = x;
 		posY = y;
-		this.p = p;
 	}
 	
 	/*

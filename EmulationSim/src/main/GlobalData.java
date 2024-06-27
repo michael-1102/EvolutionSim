@@ -1,20 +1,38 @@
 package main;
 
-import java.awt.Color;
 
+import javax.swing.JFrame;
+
+import entity.Behavior;
+import entity.Creature;
 import entity.EntityCollection;
 
 public class GlobalData {
     private static GlobalData globalData;
-    private static Panel panel;
+    private static GridPanel gridPanel;
+    private static JFrame frame;
 
 	private static EntityCollection entities;
+	private static TimerPanel timerPanel;
 	
-	private static int time; // time of day
-	private static int dayLength; // amount of time in a day (and amount of time in a night)
+	private static boolean paused;
+	
+	//SCREEN SIZE VALUES
+	public final int originalTileSize = 16;
+	public final int scale = 1;
+	
+	public final int tileSize = originalTileSize * scale;
+	
+	public final int maxScreenCol = 48;
+	public final int maxScreenRow = 36;
+	
+	public final int screenWidth = tileSize * maxScreenCol;
+	public final int screenHeight = tileSize * maxScreenRow;
 	
 	//CONFIG VARIABLES
+
 	private static int FPS; // FPS
+	private static int unpausedFPS;
 	
 	private static int foodEnergy; // energy gained from eating 1 food
 	
@@ -25,37 +43,75 @@ public class GlobalData {
 	private static int maxNumFood; // maximum number of food that can exist
 	
 	//END OF CONFIG VARIABLES
-	
     private GlobalData() { }
 	
     /*
     Get instance of GlobalData, create new GlobalData if null
      */
-	public static synchronized GlobalData getInstance(Panel p) {
+	public static synchronized GlobalData getInstance() {
         if (globalData == null) {
-        	panel = p;
             globalData = new GlobalData();
-            entities = new EntityCollection(p);
-            time = 0;
-            dayLength = 500;
+        	gridPanel = new GridPanel();
+        	frame = new JFrame();
+            entities = new EntityCollection();
+            timerPanel = new TimerPanel();
             
-            FPS = 5;
+            paused = false;
+            unpausedFPS = 5;
+            FPS = unpausedFPS;
             
             foodEnergy = 10;
             maxFoodAge = 100;
             
             
-            numFoodSpawn = 20;
-            foodRespawnTime = 5;
-            maxNumFood = 3000;
+            numFoodSpawn = 10;
+            foodRespawnTime = 50;
+            maxNumFood = 40;
             
             
         }
         return globalData;
     }
 	
-	public static synchronized GlobalData getInstance() {
-		return globalData;
+	/*
+	 Set up entities before start
+	 */
+	public void setUpSim() {
+		entities.addCreature(new Creature(4, 4, 100, 1000, 20, Behavior.eat));
+		entities.addCreature(new Creature(10, 23, 100, 1000, 20, Behavior.eat));
+		entities.addCreature(new Creature(30, 4, 100, 1000, 20, Behavior.eat));
+		
+		/*
+		entities.addCreature(new Creature(6, 6, 100, 1000, 20, Behavior.idle));
+		entities.addCreature(new Creature(6, 5, 100, 1000, 20, Behavior.idle));
+		entities.addCreature(new Creature(6, 4, 100, 1000, 20, Behavior.idle));
+		entities.addCreature(new Creature(6, 3, 100, 1000, 20, Behavior.idle));
+		entities.addCreature(new Creature(6, 2, 100, 1000, 20, Behavior.idle));
+		entities.addCreature(new Creature(6, 1, 100, 1000, 20, Behavior.idle));
+		entities.addCreature(new Creature(6, 0, 100, 1000, 20, Behavior.idle));
+		
+		entities.addCreature(new Creature(5, 6, 100, 1000, 20, Behavior.idle));
+		entities.addCreature(new Creature(4, 6, 100, 1000, 20, Behavior.idle));
+		entities.addCreature(new Creature(3, 6, 100, 1000, 20, Behavior.idle));
+		entities.addCreature(new Creature(2, 6, 100, 1000, 20, Behavior.idle));
+		entities.addCreature(new Creature(1, 6, 100, 1000, 20, Behavior.idle));
+		entities.addCreature(new Creature(0, 6, 100, 1000, 20, Behavior.idle));
+		 */
+
+	}
+	
+	/*
+	 Return frame
+	 */
+	public JFrame getFrame() {
+		return frame;
+	}
+	
+	/*
+	 Return panel
+	 */
+	public GridPanel getGridPanel() {
+		return gridPanel;
 	}
 	
 	/*
@@ -73,21 +129,27 @@ public class GlobalData {
 		return foodEnergy;
 	}
 	
-	public double getTime() {
-		return time;
+	/*
+	 Return timerPanel
+	 */
+	public TimerPanel getTimerPanel() {
+		return timerPanel;
 	}
 	
-	public void incrementTime() {
-		time++;
-		int colorVal = (int) Math.abs(255.0/dayLength * (time - dayLength));
-		panel.setBackground(new Color(colorVal, colorVal, colorVal));
-	}
+	
 	
 	/*
 	 Return FPS
 	 */
 	public int getFPS() {
 		return FPS;
+	}
+	
+	/*
+	 Set FPS
+	 */
+	public void setFPS(int newFPS) {
+		FPS = newFPS;
 	}
 	
 	/*
@@ -116,6 +178,26 @@ public class GlobalData {
 	 */
 	public int getMaxFoodAge() {
 		return maxFoodAge;
+	}
+
+	/*
+	 if paused, unpause. if unpaused, pause
+	 */
+	public void pause() {
+		if (paused) {
+			paused = false;
+			FPS = unpausedFPS;
+		} else{
+			paused = true;
+			FPS = 0;
+		}
+	}
+
+	/*
+	 Get paused
+	 */
+	public boolean getPaused() {
+		return paused;
 	}
 	
 	
