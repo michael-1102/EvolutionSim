@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -22,6 +23,8 @@ public class TimerPanel extends JPanel implements ActionListener {
 	private final static int dayLength = 4320; // amount of time in a day (and amount of time in a night)
 	private final static int fullDayLength = dayLength * 2;
 	
+	private final static int dayCutOff = 8; // cutoff of when it is day time
+	
 	Image pauseImg; //pause button image
 	Image pauseHoverImg; //pause button image when button is hovered
 	
@@ -29,21 +32,33 @@ public class TimerPanel extends JPanel implements ActionListener {
 	Image playHoverImg; //pause button image when button is hovered
 	
 	private int time; // time of day
+	private int dayCount; // day count (starts at 1)
 	private JLabel timeLabel;
+	private JLabel dayLabel;
 	private JButton pauseButton;
 	private GlobalData globalData;
 
 	public TimerPanel() {
 		globalData = GlobalData.getInstance();
 		time = 0;
+		dayCount = 1;
 		this.setPreferredSize(new Dimension(globalData.screenWidth, globalData.tileSize*2));
 		this.setBackground(Color.blue);
 		this.setBorder(BorderFactory.createLineBorder(Color.black));
 		this.setLayout(new BorderLayout());
 		
 		timeLabel = new JLabel("00:00");
+		timeLabel.setHorizontalAlignment(JLabel.LEFT);
+		timeLabel.setVerticalAlignment(JLabel.CENTER);
 		timeLabel.setFont(new Font("Verdana", Font.PLAIN, globalData.tileSize*2));
 		this.add(timeLabel, BorderLayout.WEST);
+		
+		dayLabel = new JLabel("Day " + dayCount);
+		dayLabel.setHorizontalAlignment(JLabel.CENTER);
+		dayLabel.setVerticalAlignment(JLabel.CENTER);
+		dayLabel.setFont(new Font("Verdana", Font.PLAIN, (int)(globalData.tileSize*1.5)));
+		this.add(dayLabel, BorderLayout.CENTER);
+		
 		try {
 			pauseImg = ImageIO.read(getClass().getResource("/resources/pause.png"));
 			pauseImg = pauseImg.getScaledInstance(globalData.tileSize*2, globalData.tileSize*2,  java.awt.Image.SCALE_SMOOTH );
@@ -103,7 +118,10 @@ public class TimerPanel extends JPanel implements ActionListener {
 	public void incrementTime() {
 		time++;
 		int mins =(int) (1.0*minsInDay/fullDayLength * time);
-		timeLabel.setText(String.format("%02d", mins/minsInHour % hoursInDay) + ":" + String.format("%02d", mins % minsInHour));
+		int hour = mins/minsInHour % hoursInDay;
+		if (time % fullDayLength == 0) dayCount++;
+		dayLabel.setText("Day " + dayCount);
+		timeLabel.setText(String.format("%02d", hour) + ":" + String.format("%02d", mins % minsInHour));
 		int colorVal = (int) Math.abs(255.0/dayLength * ((time+dayLength) % fullDayLength - dayLength));
 		GridPanel gridPanel = globalData.getGridPanel();
 		gridPanel.setBackground(new Color(colorVal, colorVal, colorVal));
@@ -111,5 +129,14 @@ public class TimerPanel extends JPanel implements ActionListener {
 	
 	public int getTime() {
 		return time;
+	}
+	
+	/*
+	 return true if time is >= dayCutoff AM and < dayCutoff PM
+	 */
+	public boolean isDay() {
+		int mins =(int) (1.0*minsInDay/fullDayLength * time);
+		int hour = mins/minsInHour % hoursInDay;
+		return (hour >= dayCutOff && hour < hoursInDay/2 + dayCutOff);
 	}
 }

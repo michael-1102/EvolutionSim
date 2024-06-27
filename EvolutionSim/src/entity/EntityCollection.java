@@ -68,6 +68,12 @@ public class EntityCollection {
 		// remove dead entities
 		entities.removeIf(x -> x.isDead());
 		
+		// add new entities
+		for (Entity entity : globalData.getNewEntities()) {
+			entities.add(entity);
+		}
+		globalData.getNewEntities().clear();
+		
 		// respawn food
 		if (globalData.getTimerPanel().getTime() % globalData.getFoodRespawnTime() == 0) {
 			int newX, newY;

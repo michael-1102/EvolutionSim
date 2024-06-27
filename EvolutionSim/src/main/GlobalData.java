@@ -1,10 +1,14 @@
 package main;
 
 
+import java.awt.Color;
+import java.util.ArrayList;
+
 import javax.swing.JFrame;
 
 import entity.Behavior;
 import entity.Creature;
+import entity.Entity;
 import entity.EntityCollection;
 
 public class GlobalData {
@@ -14,6 +18,8 @@ public class GlobalData {
 
 	private static EntityCollection entities;
 	private static TimerPanel timerPanel;
+	
+	private static ArrayList<Entity> newEntities;
 	
 	private static boolean paused;
 	
@@ -54,10 +60,11 @@ public class GlobalData {
         	gridPanel = new GridPanel();
         	frame = new JFrame();
             entities = new EntityCollection();
+            newEntities = new ArrayList<Entity>();
             timerPanel = new TimerPanel();
             
             paused = false;
-            unpausedFPS = 5;
+            unpausedFPS = 60;
             FPS = unpausedFPS;
             
             foodEnergy = 10;
@@ -77,9 +84,9 @@ public class GlobalData {
 	 Set up entities before start
 	 */
 	public void setUpSim() {
-		entities.addCreature(new Creature(4, 4, 100, 1000, 20, 10, Behavior.findMate));
-		entities.addCreature(new Creature(10, 8, 100, 1000, 20, 10, Behavior.findMate));
-		entities.addCreature(new Creature(30, 4, 100, 1000, 20, 10, Behavior.eat));
+		entities.addCreature(new Creature(4, 4, new Color(255, 0, 23), 100, 1000, 20, 10, Behavior.findMate));
+		entities.addCreature(new Creature(10, 8, new Color(0, 100, 100), 100, 1000, 20, 10, Behavior.findMate));
+		entities.addCreature(new Creature(30, 4, new Color(200, 0, 255), 100, 1000, 20, 10, Behavior.eat));
 		
 		/*
 		entities.addCreature(new Creature(6, 6, 100, 1000, 20, Behavior.idle));
@@ -121,6 +128,12 @@ public class GlobalData {
 		return entities;
 	}
 	
+	/*
+	 Return new entities
+	 */
+	public ArrayList<Entity> getNewEntities() {
+		return newEntities;
+	}
 	
 	/*
 	 Return amount of energy gained from 1 food
