@@ -9,7 +9,6 @@ import java.util.Queue;
 import java.util.Random;
 
 import main.GlobalData;
-import main.Panel;
 
 public class Creature extends Entity {
 	
@@ -27,18 +26,24 @@ public class Creature extends Entity {
 	
 	static private int dirX[] = { -1, 0, 1, 0 };
 	static private int dirY[] = { 0, 1, 0, -1 };
+	
+	private int maxSteps;
+	private int steps;
+	
 	/*
 	 Creature constructor
 	 */
-	public Creature(int x, int y, Panel p, int energy, int maxEnergy, int sight, Behavior behavior) {
-		super(x, y, p);
+	public Creature(int x, int y, int energy, int maxEnergy, int sight, Behavior behavior) {
+		super(x, y);
 		this.energy = energy;
 		this.maxEnergy = maxEnergy;
 		this.sight = sight;
 		this.behavior = behavior;
 		globalData = GlobalData.getInstance();
+		nodes = new Node[globalData.maxScreenCol][globalData.maxScreenRow];
 		
-		nodes = new Node[p.maxScreenCol][p.maxScreenRow];
+		steps = 0;
+		maxSteps = globalData.maxScreenCol * globalData.maxScreenRow;
 	}
 	
 	/*
@@ -46,16 +51,19 @@ public class Creature extends Entity {
 	 */
 	public void draw(Graphics2D g2) {
 		g2.setColor(Color.red);
-		g2.fillRect(posX*p.tileSize, posY*p.tileSize, p.tileSize, p.tileSize);
+		g2.fillRect(posX*globalData.tileSize, posY*globalData.tileSize, globalData.tileSize, globalData.tileSize);
 	}
 	
+	/*
+	 Create node for every tile
+	 */
 	private void initializeNodes() {
 		int col = 0;
 		int row = 0;
-		while(col < p.maxScreenCol && row < p.maxScreenRow) {
+		while(col < globalData.maxScreenCol && row < globalData.maxScreenRow) {
 				nodes[col][row] = new Node(col, row);
 				col++;
-				if (col == p.maxScreenCol) {
+				if (col == globalData.maxScreenCol) {
 					col = 0;
 					row++;
 				}
@@ -64,27 +72,36 @@ public class Creature extends Entity {
 		}
 	}
 	
+	/*
+	 Set starting node in path finding
+	 */
 	private void setStartNode(int col, int row) {
 		nodes[col][row].setAsStart();
 		startNode = nodes[col][row];
 		currentNode = startNode;
 	}
 	
+	/*
+	 Set node to path find to
+	 */
 	private void setGoalNode(int col, int row) {
 		nodes[col][row].setAsGoal();
 		goalNode = nodes[col][row];
 	}
 	
+	/*
+	 Get cost of every node
+	 */
 	private void setCostOnNodes() {
 		int col = 0;
 		int row = 0;
-		while(col < p.maxScreenCol && row < p.maxScreenRow) {
+		while(col < globalData.maxScreenCol && row < globalData.maxScreenRow) {
 			getCost(nodes[col][row]);	
 			if (!globalData.getEntities().posNotSolid(col, row)) {
 				nodes[col][row].setAsSolid();
 			}
 			col++;
-			if (col == p.maxScreenCol) {
+			if (col == globalData.maxScreenCol) {
 				col = 0;
 				row++;
 			}
@@ -92,6 +109,9 @@ public class Creature extends Entity {
 		}
 	}
 	
+	/*
+	 Get cost of path to node
+	 */
 	private void getCost(Node node) {
 		int xDistance = Math.abs(node.col - startNode.col);
 		int yDistance = Math.abs(node.row - startNode.row);
@@ -106,8 +126,11 @@ public class Creature extends Entity {
 		
 	}
 	
-	public void search() {
-		while (goalReached == false) {
+	/*
+	 Search for path
+	 */
+	private boolean search() {
+		while (true) {
 			int col = currentNode.col;
 			int row = currentNode.row;
 			
@@ -121,10 +144,10 @@ public class Creature extends Entity {
 			if (col > 0) {
 				openNode(nodes[col-1][row]); // left
 			}
-			if (row < p.maxScreenRow - 1) {
+			if (row < globalData.maxScreenRow - 1) {
 				openNode(nodes[col][row+1]); // down
 			}
-			if (col < p.maxScreenCol - 1) {
+			if (col < globalData.maxScreenCol - 1) {
 				openNode(nodes[col+1][row]); // right
 			}
 			
@@ -146,11 +169,21 @@ public class Creature extends Entity {
 			if (openList.size() > 0)
 				currentNode = openList.get(bestNodeIndex);
 			if (currentNode == goalNode) {
-				goalReached = true;
+				return true;
+			}
+			steps++;
+			if (steps > maxSteps) {
+				steps = 0;
+				return false;
 			}
 		}
+		
+
 	}
 	
+	/*
+	 Add node to open list
+	 */
 	private void openNode(Node node) {
 		if (node.open == false && node.checked == false && node.solid == false) {
 			node.setAsOpen();
@@ -159,6 +192,9 @@ public class Creature extends Entity {
 		}
 	}
 	
+	/*
+	 Get next step in path
+	 */
 	private int[] trackPath() {
 		Node current = goalNode;
 		int[] nextStep = {goalNode.col, goalNode.row};
@@ -195,6 +231,8 @@ public class Creature extends Entity {
 			break;
 		case mate:
 			break;
+		case mating:
+			break;
 		case random:
 			this.moveRandom();
 			break;
@@ -228,34 +266,35 @@ public class Creature extends Entity {
 	 Move creature towards food
 	 */
 	private void moveToFood() {
-		int[] foodPos = foodBFS(new boolean[p.maxScreenCol][p.maxScreenRow], posX, posY);
+		int[] foodPos = foodBFS(new boolean[globalData.maxScreenCol][globalData.maxScreenRow], posX, posY);
 		if (foodPos.length == 2) {
 			
 			int[] nextStep = findNextStep(foodPos);
-			
-			
-			posX = nextStep[0];
-			posY = nextStep[1];
+			if (nextStep.length == 2) {
+				this.move(nextStep[0], nextStep[1]);
+			} else {
+				this.moveRandom();
+			}
 		} else {
 			this.moveRandom();
 		}
 	}
 	
-	//NEEDS FAILSAFE IF THERE IS NO PATH
 	private int[] findNextStep(int[] foodPos) {
 		openList = new ArrayList<Node>();
 		checkedList = new ArrayList<Node>();
-		goalReached = false;
 		this.initializeNodes();
 		this.setStartNode(posX, posY);
 		this.setGoalNode(foodPos[0], foodPos[1]);
 		this.setCostOnNodes();
-		this.search();
-		return trackPath();
+		if (this.search())
+			return trackPath();
+		else
+			return new int[1];
 	}
 	
 	private boolean isValidBFS(boolean visited[][], int x, int y) {
-		if (x < 0 || y < 0 || x >= p.maxScreenCol || y>= p.maxScreenRow) {
+		if (x < 0 || y < 0 || x >= globalData.maxScreenCol || y>= globalData.maxScreenRow) {
 			return false;
 		}
 		if (visited[x][y]) {
@@ -307,36 +346,44 @@ public class Creature extends Entity {
 				if (posY <= 0) {
 					moveRandom();
 					return;
+				} else if (!globalData.getEntities().posEmpty(posX, posY-1)) {
+					moveRandom();
+					return;
 				} else {
-					posY--;
-					energy--;
+					this.move(posX, posY-1);
 				}
 				break;
 			case(1): // 1 = right
-				if (posX >= p.maxScreenCol - 1) {
+				if (posX >= globalData.maxScreenCol - 1) {
+					moveRandom();
+					return;
+				} else if (!globalData.getEntities().posEmpty(posX+1, posY)) {
 					moveRandom();
 					return;
 				} else {
-					posX++;
-					energy--;
+					this.move(posX+1, posY);
 				}
 				break;
 			case(2): // 2 = down
-				if (posY >= p.maxScreenRow - 1) {
+				if (posY >= globalData.maxScreenRow - 1) {
+					moveRandom();
+					return;
+				} else if (!globalData.getEntities().posEmpty(posX, posY+1)) {
 					moveRandom();
 					return;
 				} else {
-					posY++;
-					energy--;
+					this.move(posX, posY+1);
 				}
 				break;
 			case(3): // 3 = left
 				if (posX <= 0) {
 					moveRandom();
 					return;
+				} else if (!globalData.getEntities().posEmpty(posX-1, posY)) {
+					moveRandom();
+					return;
 				} else {
-					posX--;
-					energy--;
+					this.move(posX-1, posY);
 				}
 				break;
 			default:
@@ -344,6 +391,15 @@ public class Creature extends Entity {
 		}
 	}
 
+	/*
+	 Move creature to X and Y value
+	 */
+	private void move(int x, int y) {
+		posX = x;
+		posY = y;
+		energy--;
+	}
+	
 	/*
 	 Return energy of creature
 	 */
