@@ -3,8 +3,10 @@ package entity;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Queue;
 import java.util.Random;
 
@@ -19,31 +21,47 @@ public class Creature extends Entity {
 	boolean goalReached;
 	
 	private GlobalData globalData;
+	
+	// attributes
 	private int energy;
 	private int maxEnergy;
 	private Behavior behavior;
 	private int sight;
+	private int maxSteps; // number of steps that creature is willing to travel for mate/food
+	private int maxEnergyDuringMating; // amount of energy that creature is willing to give to mate
+	// end of attributes
+	
+	Creature mate;
 	
 	static private int dirX[] = { -1, 0, 1, 0 };
 	static private int dirY[] = { 0, 1, 0, -1 };
+	static private List<Integer> dirOptions = Arrays.asList(0, 1, 2, 3);
 	
-	private int maxSteps;
-	private int steps;
+	private boolean doneMating; // true if creature is done mating but mate is not done
+	private int steps; // number of steps that have been taken toward mate/food
+	private int energySpentMating; // number of energy spent mating thus far
 	
 	/*
 	 Creature constructor
 	 */
-	public Creature(int x, int y, int energy, int maxEnergy, int sight, Behavior behavior) {
+	public Creature(int x, int y, int energy, int maxEnergy, int sight, int maxEnergyDuringMating, Behavior behavior) {
 		super(x, y);
+		
+		globalData = GlobalData.getInstance();
+		
 		this.energy = energy;
 		this.maxEnergy = maxEnergy;
 		this.sight = sight;
 		this.behavior = behavior;
-		globalData = GlobalData.getInstance();
+		this.maxEnergyDuringMating = maxEnergyDuringMating;
+		maxSteps = globalData.maxScreenCol * globalData.maxScreenRow;
+
+		
 		nodes = new Node[globalData.maxScreenCol][globalData.maxScreenRow];
 		
+		doneMating = false;
 		steps = 0;
-		maxSteps = globalData.maxScreenCol * globalData.maxScreenRow;
+		energySpentMating = 0;	
 	}
 	
 	/*
@@ -105,7 +123,6 @@ public class Creature extends Entity {
 				col = 0;
 				row++;
 			}
-			
 		}
 	}
 	
@@ -122,8 +139,6 @@ public class Creature extends Entity {
 		node.hCost = xDistance + yDistance; // H = distance from goal node
 		
 		node.fCost = node.gCost + node.hCost; // F = G + H
-		
-		
 	}
 	
 	/*
@@ -185,7 +200,7 @@ public class Creature extends Entity {
 	 Add node to open list
 	 */
 	private void openNode(Node node) {
-		if (node.open == false && node.checked == false && node.solid == false) {
+		if (node.open == false && node.checked == false && (node.solid == false || node.goal == true)) {
 			node.setAsOpen();
 			node.parent = currentNode;
 			openList.add(node);
@@ -230,8 +245,10 @@ public class Creature extends Entity {
 		case idle:
 			break;
 		case mate:
+			this.doMating();
 			break;
-		case mating:
+		case findMate:
+			this.moveToMate();
 			break;
 		case random:
 			this.moveRandom();
@@ -249,6 +266,64 @@ public class Creature extends Entity {
 		}
 	}
 	
+	/*
+	 Mate
+	 */
+	private void doMating() {
+		if (checkForMate()) {
+			if (energySpentMating < maxEnergyDuringMating) {
+				energy--;
+				energySpentMating++;
+			} else {
+				doneMating = true;
+				if (mate.isDoneMating()) {
+					createBaby(mate);
+					this.resetBehavior();
+					mate.resetBehavior();
+				}
+			}
+		} else {
+			resetBehavior();
+		}
+	}
+	
+	/*
+	 Create baby
+	 */
+	private void createBaby(Creature mate) {
+		//globalData.getEntities().addCreature();
+	}
+	
+	/*
+	 return true if done mating
+	 */
+	private boolean isDoneMating() {
+		return doneMating;
+	}
+	
+	/*
+	 Check if mate exists and is alive, set mate to null if mate is dead
+	 */
+	private boolean checkForMate() {
+		if (mate == null) {
+			return false;
+		}
+		if (mate.getEnergy() <= 0 || !mate.getBehavior().equals(Behavior.mate)) {
+			mate = null;
+			return false;
+		}
+		return true;
+	}
+	
+	/*
+	 Set behavior according to schedule
+	 */
+	private void resetBehavior() {
+		doneMating = false;
+		energySpentMating = 0;
+		//placeholder
+		behavior = Behavior.random;
+	}
 	
 	/*
 	 Eat food at EntityCollection index
@@ -260,6 +335,42 @@ public class Creature extends Entity {
 		energy += globalData.getFoodEnergy();
 		if (energy > maxEnergy)
 			energy = maxEnergy;
+	}
+	
+	/*
+	 Set mate
+	 */
+	private void setMate(Creature mate) {
+		doneMating = false;
+		this.mate = mate;
+		this.behavior = Behavior.mate;
+	}
+	
+	/*
+	 Move creature towards mate
+	 */
+	private void moveToMate() {
+		Entity mate = mateBFS(new boolean[globalData.maxScreenCol][globalData.maxScreenRow], posX, posY);
+		if (mate instanceof Creature) {
+			int[] matePos = mate.getLocation();
+			if (this.getDistance(matePos) == 1) {
+				this.setMate((Creature)mate);
+				((Creature)mate).setMate(this);
+			} else {
+				int[] nextStep = findNextStep(matePos);
+				if (nextStep.length == 2) {
+					this.move(nextStep[0], nextStep[1]);
+				} else {
+					this.moveRandom();
+				}
+			}
+		} else {
+			this.moveRandom();
+		}
+	}
+	
+	private int getDistance(int[] pos) {
+		return Math.abs(pos[0] - posX)  + Math.abs(pos[1] - posY);
 	}
 	
 	/*
@@ -293,7 +404,10 @@ public class Creature extends Entity {
 			return new int[1];
 	}
 	
-	private boolean isValidBFS(boolean visited[][], int x, int y) {
+	/*
+	 returns true if location is not visited and within the screen
+	 */
+	private boolean isValid(boolean visited[][], int x, int y) {
 		if (x < 0 || y < 0 || x >= globalData.maxScreenCol || y>= globalData.maxScreenRow) {
 			return false;
 		}
@@ -303,7 +417,16 @@ public class Creature extends Entity {
 		return true;
 	}
 	
+	/*
+	 returns true if location is within the screen
+	 */
+	private boolean isValid(int x, int y) {
+		return !(x < 0 || y < 0 || x >= globalData.maxScreenCol || y>= globalData.maxScreenRow);	
+	}
 	
+	/*
+	 returns location of food
+	 */
 	private int[] foodBFS(boolean visited[][], int x, int y) {
 		Queue<int[]> q = new LinkedList<>();
 		q.add(new int[] {x,y});
@@ -322,7 +445,7 @@ public class Creature extends Entity {
 			for (int i = 0; i < 4; i++) {
 				int adjx = foodPos[0] + dirX[i];
 				int adjy = foodPos[1] + dirY[i];
-				if (isValidBFS(visited, adjx, adjy)) {
+				if (isValid(visited, adjx, adjy)) {
 					list.add(new int[] {adjx, adjy});
 					visited[adjx][adjy] = true;
 				}
@@ -335,59 +458,56 @@ public class Creature extends Entity {
 		return new int[0];
 	}
 	
+	/*
+	 returns generic entity if no mate found, otherwise returns potential mate
+	 */
+	private Entity mateBFS(boolean visited[][], int x, int y) {
+		Queue<int[]> q = new LinkedList<>();
+		visited[x][y] = true;
+		int[] matePos = new int[2];
+		do {
+			ArrayList<int[]> list = new ArrayList<int[]>();
+			for (int i = 0; i < 4; i++) {
+				int adjx = matePos[0] + dirX[i];
+				int adjy = matePos[1] + dirY[i];
+				if (isValid(visited, adjx, adjy)) {
+					list.add(new int[] {adjx, adjy});
+					visited[adjx][adjy] = true;
+				}
+			}
+			Collections.shuffle(list, new Random());
+			for (int i = 0; i < list.size(); i++) {
+				q.add(list.get(i));
+			}
+			
+			matePos = q.peek();
+			if (Math.abs(matePos[0] - x) + Math.abs(matePos[1] - y) > sight) return new Entity(0, 0);
+			Entity entity = globalData.getEntities().getCreature(matePos[0], matePos[1]);
+			if (entity instanceof Creature) {
+				if (((Creature)entity).getBehavior().equals(Behavior.findMate)) {
+					return entity;
+				}
+				
+			}
+			
+			q.remove();
+		} while (!q.isEmpty());
+		return new Entity(0, 0);
+	}
 	
 	/*
 	 Move creature randomly
 	 */
 	private void moveRandom() {
-		int dir = (int)(Math.random() * 4); 
-		switch(dir) {
-			case(0): // 0 = up
-				if (posY <= 0) {
-					moveRandom();
+		Collections.shuffle(dirOptions);
+		for (int i = 0; i < 4; i++) {
+				int newX = posX+dirX[dirOptions.get(i)];
+				int newY = posY+dirY[dirOptions.get(i)];
+				if (isValid(newX, newY) && globalData.getEntities().posEmpty(newX, newY)) {
+					this.move(newX, newY);
 					return;
-				} else if (!globalData.getEntities().posEmpty(posX, posY-1)) {
-					moveRandom();
-					return;
-				} else {
-					this.move(posX, posY-1);
 				}
-				break;
-			case(1): // 1 = right
-				if (posX >= globalData.maxScreenCol - 1) {
-					moveRandom();
-					return;
-				} else if (!globalData.getEntities().posEmpty(posX+1, posY)) {
-					moveRandom();
-					return;
-				} else {
-					this.move(posX+1, posY);
-				}
-				break;
-			case(2): // 2 = down
-				if (posY >= globalData.maxScreenRow - 1) {
-					moveRandom();
-					return;
-				} else if (!globalData.getEntities().posEmpty(posX, posY+1)) {
-					moveRandom();
-					return;
-				} else {
-					this.move(posX, posY+1);
-				}
-				break;
-			case(3): // 3 = left
-				if (posX <= 0) {
-					moveRandom();
-					return;
-				} else if (!globalData.getEntities().posEmpty(posX-1, posY)) {
-					moveRandom();
-					return;
-				} else {
-					this.move(posX-1, posY);
-				}
-				break;
-			default:
-				break;
+					
 		}
 	}
 
@@ -405,6 +525,13 @@ public class Creature extends Entity {
 	 */
 	public int getEnergy() {
 		return energy;
+	}
+	
+	/*
+	 Return behavior of creature
+	 */
+	public Behavior getBehavior() {
+		return behavior;
 	}
 	
 	/*

@@ -188,17 +188,17 @@ public class EntityCollection {
 	
 	
 	/*
-	 Return true if creature at x and y position
+	 Return creature if there is one at x and y value
 	 */
-	public boolean posHasCreature(int x, int y) {
+	public Entity getCreature(int x, int y) {
 		for (int i = 0; i < entities.size(); i++) {
 			if (entities.get(i) != null) {
 				if (entities.get(i) instanceof Creature && entities.get(i).posX == x && entities.get(i).posY == y) {
-					return true;
+					return entities.get(i);
 				}
 			}
 		}
-		return false;
+		return new Entity(x, y);
 	}
 	
 	/*

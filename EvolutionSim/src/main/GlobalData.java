@@ -77,9 +77,9 @@ public class GlobalData {
 	 Set up entities before start
 	 */
 	public void setUpSim() {
-		entities.addCreature(new Creature(4, 4, 100, 1000, 20, Behavior.eat));
-		entities.addCreature(new Creature(10, 23, 100, 1000, 20, Behavior.eat));
-		entities.addCreature(new Creature(30, 4, 100, 1000, 20, Behavior.eat));
+		entities.addCreature(new Creature(4, 4, 100, 1000, 20, 10, Behavior.findMate));
+		entities.addCreature(new Creature(10, 8, 100, 1000, 20, 10, Behavior.findMate));
+		entities.addCreature(new Creature(30, 4, 100, 1000, 20, 10, Behavior.eat));
 		
 		/*
 		entities.addCreature(new Creature(6, 6, 100, 1000, 20, Behavior.idle));
