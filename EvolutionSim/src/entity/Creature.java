@@ -29,6 +29,7 @@ public class Creature extends Entity {
 	private int sight;
 	private int maxSteps; // number of steps that creature is willing to travel for mate/food
 	private int maxEnergyDuringMating; // amount of energy that creature is willing to give to mate
+	private Color color;
 	// end of attributes
 	
 	Creature mate;
@@ -44,11 +45,12 @@ public class Creature extends Entity {
 	/*
 	 Creature constructor
 	 */
-	public Creature(int x, int y, int energy, int maxEnergy, int sight, int maxEnergyDuringMating, Behavior behavior) {
+	public Creature(int x, int y, Color color, int energy, int maxEnergy, int sight, int maxEnergyDuringMating, Behavior behavior) {
 		super(x, y);
 		
 		globalData = GlobalData.getInstance();
 		
+		this.color = color;
 		this.energy = energy;
 		this.maxEnergy = maxEnergy;
 		this.sight = sight;
@@ -68,7 +70,7 @@ public class Creature extends Entity {
 	 Redraw creature every frame
 	 */
 	public void draw(Graphics2D g2) {
-		g2.setColor(Color.red);
+		g2.setColor(color);
 		g2.fillRect(posX*globalData.tileSize, posY*globalData.tileSize, globalData.tileSize, globalData.tileSize);
 	}
 	
@@ -234,6 +236,13 @@ public class Creature extends Entity {
 	}
 	
 	/*
+	 Return color
+	 */
+	public Color getColor() {
+		return color;
+	}
+	
+	/*
 	 Update creature every frame
 	 */
 	public void update() {		
@@ -291,7 +300,40 @@ public class Creature extends Entity {
 	 Create baby
 	 */
 	private void createBaby(Creature mate) {
-		//globalData.getEntities().addCreature();
+		int babyEnergy = this.energySpentMating + mate.getEnergySpentMating();
+		
+		// need to add variation to these
+		int red = (this.color.getRed() + mate.getColor().getRed()) / 2;
+		int green = (this.color.getGreen() + mate.getColor().getGreen()) / 2;
+		int blue = (this.color.getBlue() + mate.getColor().getBlue()) / 2;
+		Color babyColor = new Color(red, green, blue);
+		
+		int babyMaxEnergy = (this.maxEnergy + mate.getMaxEnergy()) / 2;
+		
+		int babyMaxEnergyDuringMating = (this.maxEnergyDuringMating + mate.getMaxEnergyDuringMating()) / 2;
+		
+		globalData.getNewEntities().add(new Creature(posX, posY+1, babyColor, babyEnergy, babyMaxEnergy, 20, babyMaxEnergyDuringMating, Behavior.random));
+	}
+	
+	/*
+	 Return max energy during mating
+	 */
+	private int getMaxEnergyDuringMating() {
+		return maxEnergyDuringMating;
+	}
+	
+	/*
+	 Return max energy
+	 */
+	private int getMaxEnergy() {
+		return maxEnergy;
+	}
+	
+	/*
+	 return how much energy this creature has given to its offspring
+	 */
+	private int getEnergySpentMating() {
+		return energySpentMating;
 	}
 	
 	/*
