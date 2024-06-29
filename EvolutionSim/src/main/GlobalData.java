@@ -49,8 +49,7 @@ public class GlobalData {
 	private static int maxNumFood; // maximum number of food that can exist
 	
 	//END OF CONFIG VARIABLES
-    private GlobalData() { }
-	
+    	
     /*
     Get instance of GlobalData, create new GlobalData if null
      */
@@ -64,7 +63,7 @@ public class GlobalData {
             timerPanel = new TimerPanel();
             
             paused = false;
-            unpausedFPS = 60;
+            unpausedFPS = 5;
             FPS = unpausedFPS;
             
             foodEnergy = 10;
@@ -84,9 +83,9 @@ public class GlobalData {
 	 Set up entities before start
 	 */
 	public void setUpSim() {
-		entities.addCreature(new Creature(4, 4, new Color(255, 0, 23), 100, 1000, 20, 10, Behavior.findMate));
-		entities.addCreature(new Creature(10, 8, new Color(0, 100, 100), 100, 1000, 20, 10, Behavior.findMate));
-		entities.addCreature(new Creature(30, 4, new Color(200, 0, 255), 100, 1000, 20, 10, Behavior.eat));
+		entities.addCreature(new Creature(4, 4, new Color(255, 0, 23), 100, 1000, 20, 10, 10, Behavior.findMate));
+		entities.addCreature(new Creature(10, 8, new Color(0, 100, 100), 100, 1000, 20, 10, 10, Behavior.findMate));
+		entities.addCreature(new Creature(30, 4, new Color(200, 0, 255), 100, 1000, 20, 10, 10, Behavior.eat));
 		
 		/*
 		entities.addCreature(new Creature(6, 6, 100, 1000, 20, Behavior.idle));

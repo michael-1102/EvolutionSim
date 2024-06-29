@@ -26,7 +26,8 @@ public class Creature extends Entity {
 	private int energy;
 	private int maxEnergy;
 	private Behavior behavior;
-	private int sight;
+	private int daySight;
+	private int nightSight;
 	private int maxSteps; // number of steps that creature is willing to travel for mate/food
 	private int maxEnergyDuringMating; // amount of energy that creature is willing to give to mate
 	private Color color;
@@ -38,6 +39,7 @@ public class Creature extends Entity {
 	static private int dirY[] = { 0, 1, 0, -1 };
 	static private List<Integer> dirOptions = Arrays.asList(0, 1, 2, 3);
 	
+	private int sight;
 	private boolean doneMating; // true if creature is done mating but mate is not done
 	private int steps; // number of steps that have been taken toward mate/food
 	private int energySpentMating; // number of energy spent mating thus far
@@ -45,7 +47,7 @@ public class Creature extends Entity {
 	/*
 	 Creature constructor
 	 */
-	public Creature(int x, int y, Color color, int energy, int maxEnergy, int sight, int maxEnergyDuringMating, Behavior behavior) {
+	public Creature(int x, int y, Color color, int energy, int maxEnergy, int daySight, int nightSight, int maxEnergyDuringMating, Behavior behavior) {
 		super(x, y);
 		
 		globalData = GlobalData.getInstance();
@@ -53,7 +55,8 @@ public class Creature extends Entity {
 		this.color = color;
 		this.energy = energy;
 		this.maxEnergy = maxEnergy;
-		this.sight = sight;
+		this.daySight = daySight;
+		this.nightSight= nightSight;
 		this.behavior = behavior;
 		this.maxEnergyDuringMating = maxEnergyDuringMating;
 		maxSteps = globalData.maxScreenCol * globalData.maxScreenRow;
@@ -245,7 +248,15 @@ public class Creature extends Entity {
 	/*
 	 Update creature every frame
 	 */
-	public void update() {		
+	public void update() {	
+		// set sight
+		if (globalData.getTimerPanel().isDay()) {
+			sight = daySight;
+		} else {
+			sight = nightSight;
+		}
+		
+		
 		// movement behavior
 		switch(behavior) {
 		case eat:
@@ -312,7 +323,7 @@ public class Creature extends Entity {
 		
 		int babyMaxEnergyDuringMating = (this.maxEnergyDuringMating + mate.getMaxEnergyDuringMating()) / 2;
 		
-		globalData.getNewEntities().add(new Creature(posX, posY+1, babyColor, babyEnergy, babyMaxEnergy, 20, babyMaxEnergyDuringMating, Behavior.random));
+		globalData.getNewEntities().add(new Creature(posX, posY+1, babyColor, babyEnergy, babyMaxEnergy, 20, 20, babyMaxEnergyDuringMating, Behavior.random));
 	}
 	
 	/*
