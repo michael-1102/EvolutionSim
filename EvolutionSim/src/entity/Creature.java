@@ -25,10 +25,9 @@ public class Creature extends Entity {
 	// attributes
 	private int energy;
 	private int maxEnergy;
-	private Behavior behavior;
 	private int daySight;
 	private int nightSight;
-	private int maxSteps; // number of steps that creature is willing to travel for mate/food
+	private Schedule schedule;
 	private int maxEnergyDuringMating; // amount of energy that creature is willing to give to mate
 	private Color color;
 	// end of attributes
@@ -39,15 +38,18 @@ public class Creature extends Entity {
 	static private int dirY[] = { 0, 1, 0, -1 };
 	static private List<Integer> dirOptions = Arrays.asList(0, 1, 2, 3);
 	
+	private Behavior behavior; // current creature behavior
+	
 	private int sight;
 	private boolean doneMating; // true if creature is done mating but mate is not done
-	private int steps; // number of steps that have been taken toward mate/food
+	private int steps; // how many tiles checked during search
+	private int maxSteps; // max number of tiles checked during search before search is given up
 	private int energySpentMating; // number of energy spent mating thus far
 	
 	/*
 	 Creature constructor
 	 */
-	public Creature(int x, int y, Color color, int energy, int maxEnergy, int daySight, int nightSight, int maxEnergyDuringMating, Behavior behavior) {
+	public Creature(int x, int y, Color color, int energy, int maxEnergy, int daySight, int nightSight, int maxEnergyDuringMating, Schedule schedule) {
 		super(x, y);
 		
 		globalData = GlobalData.getInstance();
@@ -57,7 +59,7 @@ public class Creature extends Entity {
 		this.maxEnergy = maxEnergy;
 		this.daySight = daySight;
 		this.nightSight= nightSight;
-		this.behavior = behavior;
+		this.schedule = schedule;
 		this.maxEnergyDuringMating = maxEnergyDuringMating;
 		maxSteps = globalData.maxScreenCol * globalData.maxScreenRow;
 
@@ -67,6 +69,7 @@ public class Creature extends Entity {
 		doneMating = false;
 		steps = 0;
 		energySpentMating = 0;	
+		behavior = Behavior.idle;
 	}
 	
 	/*
@@ -256,6 +259,9 @@ public class Creature extends Entity {
 			sight = nightSight;
 		}
 		
+		if (behavior.isSchedulable())
+			behavior = schedule.getCurrentBehavior();
+		
 		
 		// movement behavior
 		switch(behavior) {
@@ -323,34 +329,67 @@ public class Creature extends Entity {
 		
 		int babyMaxEnergyDuringMating = (this.maxEnergyDuringMating + mate.getMaxEnergyDuringMating()) / 2;
 		
-		globalData.getNewEntities().add(new Creature(posX, posY+1, babyColor, babyEnergy, babyMaxEnergy, 20, 20, babyMaxEnergyDuringMating, Behavior.random));
+		int babyDaySight = (this.daySight + mate.getDaySight()) / 2;
+		int babyNightSight = (this.nightSight + mate.getNightSight()) / 2;
+		
+		Schedule babySchedule = this.schedule.getBabySchedule(mate.getSchedule());
+		
+		int[] babyPos = this.getBabyPos(mate.getLocation());
+		
+		globalData.getNewEntities().add(new Creature(babyPos[0], babyPos[1], babyColor, babyEnergy, babyMaxEnergy, babyDaySight, babyNightSight, babyMaxEnergyDuringMating, babySchedule));
+	}
+	
+	private int[] getBabyPos(int[] matePos) {
+		int[] babyPos = {posX, posY+1};
+		return babyPos;
+	}
+	
+	/*
+	 Return schedule
+	 */
+	public Schedule getSchedule() {
+		return schedule;
+	}
+	
+	/*
+	 Return daySight
+	 */
+	public int getDaySight() {
+		return daySight;
+	}
+	
+	/*
+	 Return nightSight
+	 */
+	public int getNightSight() {
+		return nightSight;
 	}
 	
 	/*
 	 Return max energy during mating
 	 */
-	private int getMaxEnergyDuringMating() {
+	public int getMaxEnergyDuringMating() {
 		return maxEnergyDuringMating;
 	}
 	
 	/*
 	 Return max energy
 	 */
-	private int getMaxEnergy() {
+	public int getMaxEnergy() {
 		return maxEnergy;
 	}
 	
 	/*
 	 return how much energy this creature has given to its offspring
 	 */
-	private int getEnergySpentMating() {
+	public int getEnergySpentMating() {
 		return energySpentMating;
 	}
 	
 	/*
 	 return true if done mating
 	 */
-	private boolean isDoneMating() {
+	public boolean isDoneMating() {
 		return doneMating;
 	}
 	
@@ -374,8 +413,8 @@ public class Creature extends Entity {
 	private void resetBehavior() {
 		doneMating = false;
 		energySpentMating = 0;
-		//placeholder
-		behavior = Behavior.random;
+		
+		behavior = schedule.getCurrentBehavior();
 	}
 	
 	/*
@@ -518,7 +557,20 @@ public class Creature extends Entity {
 		Queue<int[]> q = new LinkedList<>();
 		visited[x][y] = true;
 		int[] matePos = new int[2];
-		do {
+		q.add(new int[] {x,y});
+		while (!q.isEmpty()) {
+			matePos = q.peek();
+			if (Math.abs(matePos[0] - x) + Math.abs(matePos[1] - y) > sight) return new Entity(0, 0);
+			Entity entity = globalData.getEntities().getCreature(matePos[0], matePos[1]);
+			if (entity instanceof Creature && !entity.equals(this)) {
+				if (((Creature)entity).getBehavior().equals(Behavior.findMate)) {
+					return entity;
+				}
+				
+			}
+			
+			q.remove();
+			
 			ArrayList<int[]> list = new ArrayList<int[]>();
 			for (int i = 0; i < 4; i++) {
 				int adjx = matePos[0] + dirX[i];
@@ -532,19 +584,7 @@ public class Creature extends Entity {
 			for (int i = 0; i < list.size(); i++) {
 				q.add(list.get(i));
 			}
-			
-			matePos = q.peek();
-			if (Math.abs(matePos[0] - x) + Math.abs(matePos[1] - y) > sight) return new Entity(0, 0);
-			Entity entity = globalData.getEntities().getCreature(matePos[0], matePos[1]);
-			if (entity instanceof Creature) {
-				if (((Creature)entity).getBehavior().equals(Behavior.findMate)) {
-					return entity;
-				}
-				
-			}
-			
-			q.remove();
-		} while (!q.isEmpty());
+		}
 		return new Entity(0, 0);
 	}
 	
