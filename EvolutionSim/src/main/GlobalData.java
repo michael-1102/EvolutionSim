@@ -10,6 +10,7 @@ import entity.Behavior;
 import entity.Creature;
 import entity.Entity;
 import entity.EntityCollection;
+import entity.Schedule;
 
 public class GlobalData {
     private static GlobalData globalData;
@@ -63,14 +64,14 @@ public class GlobalData {
             timerPanel = new TimerPanel();
             
             paused = false;
-            unpausedFPS = 5;
+            unpausedFPS = 20;
             FPS = unpausedFPS;
             
             foodEnergy = 10;
             maxFoodAge = 100;
             
             
-            numFoodSpawn = 10;
+            numFoodSpawn = 30;
             foodRespawnTime = 50;
             maxNumFood = 40;
             
@@ -83,26 +84,22 @@ public class GlobalData {
 	 Set up entities before start
 	 */
 	public void setUpSim() {
-		entities.addCreature(new Creature(4, 4, new Color(255, 0, 23), 100, 1000, 20, 10, 10, Behavior.findMate));
-		entities.addCreature(new Creature(10, 8, new Color(0, 100, 100), 100, 1000, 20, 10, 10, Behavior.findMate));
-		entities.addCreature(new Creature(30, 4, new Color(200, 0, 255), 100, 1000, 20, 10, 10, Behavior.eat));
-		
-		/*
-		entities.addCreature(new Creature(6, 6, 100, 1000, 20, Behavior.idle));
-		entities.addCreature(new Creature(6, 5, 100, 1000, 20, Behavior.idle));
-		entities.addCreature(new Creature(6, 4, 100, 1000, 20, Behavior.idle));
-		entities.addCreature(new Creature(6, 3, 100, 1000, 20, Behavior.idle));
-		entities.addCreature(new Creature(6, 2, 100, 1000, 20, Behavior.idle));
-		entities.addCreature(new Creature(6, 1, 100, 1000, 20, Behavior.idle));
-		entities.addCreature(new Creature(6, 0, 100, 1000, 20, Behavior.idle));
-		
-		entities.addCreature(new Creature(5, 6, 100, 1000, 20, Behavior.idle));
-		entities.addCreature(new Creature(4, 6, 100, 1000, 20, Behavior.idle));
-		entities.addCreature(new Creature(3, 6, 100, 1000, 20, Behavior.idle));
-		entities.addCreature(new Creature(2, 6, 100, 1000, 20, Behavior.idle));
-		entities.addCreature(new Creature(1, 6, 100, 1000, 20, Behavior.idle));
-		entities.addCreature(new Creature(0, 6, 100, 1000, 20, Behavior.idle));
-		 */
+		Behavior[] behaviors1 = new Behavior[96];
+		Behavior[] behaviors2 = new Behavior[96];
+		Behavior[] behaviors3 = new Behavior[96];
+		for (int i = 0; i < 16; i++) {
+			behaviors1[i] = Behavior.idle;
+			behaviors2[i] = Behavior.eat;
+			behaviors3[i] = Behavior.eat;
+		}
+		for (int i = 16; i < 96; i++) {
+			behaviors1[i] = Behavior.eat;
+			behaviors2[i] = Behavior.findMate;
+			behaviors3[i] = Behavior.findMate;
+		}
+		entities.addCreature(new Creature(4, 4, new Color(255, 0, 23), 100, 1000, 20, 20, 10, new Schedule(behaviors1)));
+		entities.addCreature(new Creature(10, 8, new Color(0, 100, 100), 100, 1000, 20, 20, 10, new Schedule(behaviors2)));
+		entities.addCreature(new Creature(30, 4, new Color(200, 0, 255), 100, 1000, 20, 20, 10, new Schedule(behaviors3)));
 
 	}
 	

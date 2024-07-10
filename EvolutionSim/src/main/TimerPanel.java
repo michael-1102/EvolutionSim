@@ -17,6 +17,7 @@ import javax.swing.JLabel;
 import java.awt.Image;
 
 public class TimerPanel extends JPanel implements ActionListener {
+	// use a better way to store these constants
 	private final static int hoursInDay = 24; // number of real life hours in a real life day
 	private final static int minsInHour = 60; // number of real life minutes in a real life hour
 	private final static int minsInDay = minsInHour * hoursInDay; // number of real life minutes in a real life day
@@ -129,6 +130,11 @@ public class TimerPanel extends JPanel implements ActionListener {
 	
 	public int getTime() {
 		return time;
+	}
+	
+	public int getMinuteOfDay() {
+		return (int) (1.0*minsInDay/fullDayLength * time) % minsInDay;
+
 	}
 	
 	/*
