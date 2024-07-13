@@ -2,6 +2,8 @@ package entity;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -10,19 +12,23 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Random;
 
+import javax.swing.JButton;
+
 import main.GlobalData;
 
-public class Creature extends Entity {
+public class Creature extends Entity implements ActionListener {
 	
-	Node[][] nodes;
-	Node startNode, goalNode, currentNode;
-	ArrayList<Node> openList;
-	ArrayList<Node> checkedList;
+	private JButton button;
+	
+	private Node[][] nodes;
+	private Node startNode, goalNode, currentNode;
+	private ArrayList<Node> openList;
 	boolean goalReached;
 	
 	private GlobalData globalData;
 	
 	// attributes
+	private int slowness;
 	private int energy;
 	private int maxEnergy;
 	private int daySight;
@@ -30,9 +36,10 @@ public class Creature extends Entity {
 	private Schedule schedule;
 	private int maxEnergyDuringMating; // amount of energy that creature is willing to give to mate
 	private Color color;
+	private int mateCooldown; // number of frames after mating / being born during which the creature cannot mate
 	// end of attributes
 	
-	Creature mate;
+	private Creature mate;
 	
 	static private int dirX[] = { -1, 0, 1, 0 };
 	static private int dirY[] = { 0, 1, 0, -1 };
@@ -45,15 +52,17 @@ public class Creature extends Entity {
 	private int steps; // how many tiles checked during search
 	private int maxSteps; // max number of tiles checked during search before search is given up
 	private int energySpentMating; // number of energy spent mating thus far
+	private int currentMateCooldown;
 	
 	/*
 	 Creature constructor
 	 */
-	public Creature(int x, int y, Color color, int energy, int maxEnergy, int daySight, int nightSight, int maxEnergyDuringMating, Schedule schedule) {
+	public Creature(int x, int y, Color color, int slowness, int energy, int maxEnergy, int daySight, int nightSight, int maxEnergyDuringMating, int mateCooldown, Schedule schedule) {
 		super(x, y);
 		
 		globalData = GlobalData.getInstance();
 		
+		this.slowness = slowness;
 		this.color = color;
 		this.energy = energy;
 		this.maxEnergy = maxEnergy;
@@ -61,8 +70,9 @@ public class Creature extends Entity {
 		this.nightSight= nightSight;
 		this.schedule = schedule;
 		this.maxEnergyDuringMating = maxEnergyDuringMating;
+		this.mateCooldown = mateCooldown;
 		maxSteps = globalData.maxScreenCol * globalData.maxScreenRow;
-
+		
 		
 		nodes = new Node[globalData.maxScreenCol][globalData.maxScreenRow];
 		
@@ -70,12 +80,19 @@ public class Creature extends Entity {
 		steps = 0;
 		energySpentMating = 0;	
 		behavior = Behavior.idle;
+		
+		button = new JButton();
+		button.setBounds(posX*globalData.tileSize, posY*globalData.tileSize, globalData.tileSize, globalData.tileSize);
+		button.addActionListener(this);
+		globalData.getGridPanel().add(button);
+		globalData.getFrame().pack();
 	}
 	
 	/*
 	 Redraw creature every frame
 	 */
 	public void draw(Graphics2D g2) {
+		button.setBounds(posX*globalData.tileSize, posY*globalData.tileSize, globalData.tileSize, globalData.tileSize);
 		g2.setColor(color);
 		g2.fillRect(posX*globalData.tileSize, posY*globalData.tileSize, globalData.tileSize, globalData.tileSize);
 	}
@@ -93,10 +110,12 @@ public class Creature extends Entity {
 					col = 0;
 					row++;
 				}
-			
-			
 		}
 	}
+	
+	public void actionPerformed(ActionEvent e){  
+		System.out.println("pressed");
+	}  
 	
 	/*
 	 Set starting node in path finding
@@ -158,7 +177,6 @@ public class Creature extends Entity {
 			int row = currentNode.row;
 			
 			currentNode.setAsChecked();
-			checkedList.add(currentNode);
 			openList.remove(currentNode);
 			
 			if (row > 0) {
@@ -242,13 +260,6 @@ public class Creature extends Entity {
 	}
 	
 	/*
-	 Return color
-	 */
-	public Color getColor() {
-		return color;
-	}
-	
-	/*
 	 Update creature every frame
 	 */
 	public void update() {	
@@ -263,25 +274,31 @@ public class Creature extends Entity {
 			behavior = schedule.getCurrentBehavior();
 		
 		
-		// movement behavior
-		switch(behavior) {
-		case eat:
-			this.moveToFood();
-			break;
-		case idle:
-			break;
-		case mate:
-			this.doMating();
-			break;
-		case findMate:
-			this.moveToMate();
-			break;
-		case random:
-			this.moveRandom();
-			break;
-		default:
-			break;
-			
+		if (!(behavior.isMoving() && globalData.getTimerPanel().getTime() % slowness != 0)) { // don't do anything if moving but not time to move
+			// behavior
+			switch(behavior) {
+			case eat:
+				this.moveToFood();
+				break;
+			case idle:
+				break;
+			case mate:
+				this.doMating();
+				break;
+			case findMate:
+				this.moveToMate();
+				break;
+			case random:
+				this.moveRandom();
+				break;
+			default:
+				break;
+				
+			}
+		}
+		
+		if (currentMateCooldown > 0) {
+			currentMateCooldown--;
 		}
 		
 		// check for food
@@ -302,7 +319,7 @@ public class Creature extends Entity {
 				energySpentMating++;
 			} else {
 				doneMating = true;
-				if (mate.isDoneMating()) {
+				if (mate.doneMating) {
 					createBaby(mate);
 					this.resetBehavior();
 					mate.resetBehavior();
@@ -317,81 +334,93 @@ public class Creature extends Entity {
 	 Create baby
 	 */
 	private void createBaby(Creature mate) {
-		int babyEnergy = this.energySpentMating + mate.getEnergySpentMating();
 		
-		// need to add variation to these
-		int red = (this.color.getRed() + mate.getColor().getRed()) / 2;
-		int green = (this.color.getGreen() + mate.getColor().getGreen()) / 2;
-		int blue = (this.color.getBlue() + mate.getColor().getBlue()) / 2;
+		int babyEnergy = this.energySpentMating + mate.energySpentMating;
+		
+		int babySlowness = getBabyInt(this.slowness, mate.slowness, 1);
+		
+		
+		
+		int red = getBabyInt(this.color.getRed(), mate.color.getRed(), 0, 255);
+		int green = getBabyInt(this.color.getGreen(), mate.color.getGreen(), 0, 255);
+		int blue = getBabyInt(this.color.getBlue(), mate.color.getBlue(), 0, 255);
 		Color babyColor = new Color(red, green, blue);
 		
-		int babyMaxEnergy = (this.maxEnergy + mate.getMaxEnergy()) / 2;
+		int babyMaxEnergy = getBabyInt(this.maxEnergy, mate.maxEnergy, babyEnergy);
 		
-		int babyMaxEnergyDuringMating = (this.maxEnergyDuringMating + mate.getMaxEnergyDuringMating()) / 2;
+		int babyMaxEnergyDuringMating =  getBabyInt(this.maxEnergyDuringMating, mate.maxEnergyDuringMating, 1, babyMaxEnergy);
 		
-		int babyDaySight = (this.daySight + mate.getDaySight()) / 2;
-		int babyNightSight = (this.nightSight + mate.getNightSight()) / 2;
+		int babyDaySight = getBabyInt(this.daySight, mate.daySight, 1);
+		int babyNightSight = getBabyInt(this.nightSight, mate.nightSight, 1);
 		
-		Schedule babySchedule = this.schedule.getBabySchedule(mate.getSchedule());
+		int babyMateCooldown = getBabyInt(this.mateCooldown, mate.mateCooldown, 1);
 		
-		int[] babyPos = this.getBabyPos(mate.getLocation());
+		Schedule babySchedule = this.schedule.getBabySchedule(mate.schedule);
 		
-		globalData.getNewEntities().add(new Creature(babyPos[0], babyPos[1], babyColor, babyEnergy, babyMaxEnergy, babyDaySight, babyNightSight, babyMaxEnergyDuringMating, babySchedule));
+		int[] babyPos = this.getBabyPos(new int[] {mate.posX, mate.posY});
+		if (babyPos.length == 2) {
+			Creature baby = new Creature(babyPos[0], babyPos[1], babyColor, babySlowness, babyEnergy, babyMaxEnergy, babyDaySight, babyNightSight, babyMaxEnergyDuringMating, babyMateCooldown, babySchedule);
+			baby.setCurrentMateCooldown(babyMateCooldown);
+			globalData.getNewEntities().add(baby);
+		}
+		this.currentMateCooldown = this.mateCooldown;
+		mate.currentMateCooldown = mate.mateCooldown;
+	}
+	
+	/*
+	 Calculate the stat for a baby based on parents' stats and min
+	 */
+	private int getBabyInt(int stat1, int stat2, int min) {
+		int babyStat = getBabyInt(stat1, stat2);
+		if (babyStat < min) {
+			babyStat = min;
+		}
+		return babyStat;
+	}
+	
+	/*
+	 Calculate the stat for a baby based on parents' stats
+	 */
+	private int getBabyInt(int stat1, int stat2) {
+		double percent = Math.random();
+		double babyStatDouble = ((stat1*percent) + (stat2*(1.0-percent)));
+		
+		double percentMutation = (Math.random() * 10.0 - 5.0) / 100.0;
+		int babyStatInt = (int) Math.round(babyStatDouble * (1.0+percentMutation));
+		return babyStatInt;
+	}
+	
+	/*
+	 Calculate the stat for a baby based on parents' stats and min and max
+	 */
+	private int getBabyInt(int stat1, int stat2, int min, int max) {
+		int babyStat = getBabyInt(stat1, stat2, min);
+		if (babyStat > max) {
+			babyStat = max;
+		}
+		return babyStat;
 	}
 	
 	private int[] getBabyPos(int[] matePos) {
-		int[] babyPos = {posX, posY+1};
-		return babyPos;
+		Collections.shuffle(dirOptions);
+		int[] babyPos = new int[2];
+		for (int i = 0; i < 4; i++) {
+				babyPos[0] = posX+dirX[dirOptions.get(i)];
+				babyPos[1] = posY+dirY[dirOptions.get(i)];
+				if (globalData.getEntities().posNotSolid(babyPos[0], babyPos[1])) {
+					return babyPos;
+				}
+		}
+		for (int i = 0; i < 4; i++) {
+			babyPos[0] = matePos[0]+dirX[dirOptions.get(i)];
+			babyPos[1] = matePos[1]+dirY[dirOptions.get(i)];
+			if (globalData.getEntities().posNotSolid(babyPos[0], babyPos[1])) {
+				return babyPos;
+			}
+		}
+		return new int[1];
 	}
 	
-	/*
-	 Return schedule
-	 */
-	public Schedule getSchedule() {
-		return schedule;
-	}
-	
-	/*
-	 Return daySight
-	 */
-	public int getDaySight() {
-		return daySight;
-	}
-	
-	/*
-	 Return nightSight
-	 */
-	public int getNightSight() {
-		return nightSight;
-	}
-	
-	/*
-	 Return max energy during mating
-	 */
-	public int getMaxEnergyDuringMating() {
-		return maxEnergyDuringMating;
-	}
-	
-	/*
-	 Return max energy
-	 */
-	public int getMaxEnergy() {
-		return maxEnergy;
-	}
-	
-	/*
-	 return how much energy this creature has given to its offspring
-	 */
-	public int getEnergySpentMating() {
-		return energySpentMating;
-	}
-	
-	/*
-	 return true if done mating
-	 */
-	public boolean isDoneMating() {
-		return doneMating;
-	}
 	
 	/*
 	 Check if mate exists and is alive, set mate to null if mate is dead
@@ -400,11 +429,18 @@ public class Creature extends Entity {
 		if (mate == null) {
 			return false;
 		}
-		if (mate.getEnergy() <= 0 || !mate.getBehavior().equals(Behavior.mate)) {
+		if (mate.energy <= 0 || !mate.behavior.equals(Behavior.mate)) {
 			mate = null;
 			return false;
 		}
 		return true;
+	}
+	
+	/*
+	 Set mate cooldown (for when baby is born)
+	 */
+	private void setCurrentMateCooldown(int currentMateCooldown) {
+		this.currentMateCooldown = currentMateCooldown;
 	}
 	
 	/*
@@ -442,16 +478,21 @@ public class Creature extends Entity {
 	 Move creature towards mate
 	 */
 	private void moveToMate() {
+		if (currentMateCooldown > 0) {
+			this.moveToFood();
+			return;
+		}
+		
 		Entity mate = mateBFS(new boolean[globalData.maxScreenCol][globalData.maxScreenRow], posX, posY);
 		if (mate instanceof Creature) {
-			int[] matePos = mate.getLocation();
+			int[] matePos = {mate.posX, mate.posY};
 			if (this.getDistance(matePos) == 1) {
 				this.setMate((Creature)mate);
 				((Creature)mate).setMate(this);
 			} else {
 				int[] nextStep = findNextStep(matePos);
 				if (nextStep.length == 2) {
-					this.move(nextStep[0], nextStep[1]);
+					this.moveCreature(nextStep[0], nextStep[1]);
 				} else {
 					this.moveRandom();
 				}
@@ -474,7 +515,7 @@ public class Creature extends Entity {
 			
 			int[] nextStep = findNextStep(foodPos);
 			if (nextStep.length == 2) {
-				this.move(nextStep[0], nextStep[1]);
+				this.moveCreature(nextStep[0], nextStep[1]);
 			} else {
 				this.moveRandom();
 			}
@@ -485,7 +526,6 @@ public class Creature extends Entity {
 	
 	private int[] findNextStep(int[] foodPos) {
 		openList = new ArrayList<Node>();
-		checkedList = new ArrayList<Node>();
 		this.initializeNodes();
 		this.setStartNode(posX, posY);
 		this.setGoalNode(foodPos[0], foodPos[1]);
@@ -597,17 +637,16 @@ public class Creature extends Entity {
 				int newX = posX+dirX[dirOptions.get(i)];
 				int newY = posY+dirY[dirOptions.get(i)];
 				if (isValid(newX, newY) && globalData.getEntities().posEmpty(newX, newY)) {
-					this.move(newX, newY);
+					this.moveCreature(newX, newY);
 					return;
-				}
-					
+				}	
 		}
 	}
 
 	/*
 	 Move creature to X and Y value
 	 */
-	private void move(int x, int y) {
+	private void moveCreature(int x, int y) {
 		posX = x;
 		posY = y;
 		energy--;

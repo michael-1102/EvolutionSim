@@ -15,6 +15,7 @@ public class Main {
 		frame.setTitle("Evolution Simulator");
 		
 		GridPanel gridPanel = globalData.getGridPanel();
+		gridPanel.setLayout(null);
 		frame.setLayout(new GridBagLayout());
 		GridBagConstraints constraints = new GridBagConstraints();
 		constraints.gridx = 0;

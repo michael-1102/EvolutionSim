@@ -22,14 +22,6 @@ public class Entity {
 	}
 
 	/*
-	 return location as an array {posX, posY}
-	 */
-	public int[] getLocation() {
-		int[] location = {posX, posY};
-		return location;
-	}
-	
-	/*
 	 Overridden
 	 */
 	public void update() {

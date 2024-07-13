@@ -64,14 +64,14 @@ public class GlobalData {
             timerPanel = new TimerPanel();
             
             paused = false;
-            unpausedFPS = 20;
+            unpausedFPS = 10;
             FPS = unpausedFPS;
             
             foodEnergy = 10;
             maxFoodAge = 100;
             
             
-            numFoodSpawn = 30;
+            numFoodSpawn = 50;
             foodRespawnTime = 50;
             maxNumFood = 40;
             
@@ -87,19 +87,15 @@ public class GlobalData {
 		Behavior[] behaviors1 = new Behavior[96];
 		Behavior[] behaviors2 = new Behavior[96];
 		Behavior[] behaviors3 = new Behavior[96];
-		for (int i = 0; i < 16; i++) {
-			behaviors1[i] = Behavior.idle;
-			behaviors2[i] = Behavior.eat;
-			behaviors3[i] = Behavior.eat;
-		}
-		for (int i = 16; i < 96; i++) {
-			behaviors1[i] = Behavior.eat;
+		for (int i = 0; i < 96; i++) {
+			behaviors1[i] = Behavior.findMate;
 			behaviors2[i] = Behavior.findMate;
 			behaviors3[i] = Behavior.findMate;
 		}
-		entities.addCreature(new Creature(4, 4, new Color(255, 0, 23), 100, 1000, 20, 20, 10, new Schedule(behaviors1)));
-		entities.addCreature(new Creature(10, 8, new Color(0, 100, 100), 100, 1000, 20, 20, 10, new Schedule(behaviors2)));
-		entities.addCreature(new Creature(30, 4, new Color(200, 0, 255), 100, 1000, 20, 20, 10, new Schedule(behaviors3)));
+		
+		entities.addCreature(new Creature(4, 4, new Color(255, 0, 23), 10, 100, 1000, 20, 20, 10, 1000, new Schedule(behaviors1)));
+		entities.addCreature(new Creature(10, 8, new Color(0, 100, 100), 10, 100, 1000, 20, 20, 10, 1000, new Schedule(behaviors2)));
+		entities.addCreature(new Creature(30, 4, new Color(200, 0, 255), 10, 100, 1000, 20, 20, 10, 1000, new Schedule(behaviors3)));
 
 	}
 	
