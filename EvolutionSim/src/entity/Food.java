@@ -21,6 +21,7 @@ public class Food extends Entity {
 	/*
 	 Update food every frame
 	 */
+	@Override
 	public void update() {
 		age++;
 	}
@@ -28,6 +29,7 @@ public class Food extends Entity {
 	/*
 	 Redraw food every frame
 	 */
+	@Override
 	public void draw(Graphics2D g2) {
 		g2.setColor(new Color((int)(255*(0.5*age/globalData.getMaxFoodAge())), (int)(255*(1-1.0*age/globalData.getMaxFoodAge())), 0));
 		

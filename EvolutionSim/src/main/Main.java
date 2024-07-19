@@ -33,5 +33,6 @@ public class Main {
 		globalData.setUpSim();
 		gridPanel.startThread();
 		
+		
 	}
 }
