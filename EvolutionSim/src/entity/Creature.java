@@ -12,7 +12,9 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Random;
 
+
 import javax.swing.JButton;
+import javax.swing.border.LineBorder;
 
 import main.GlobalData;
 
@@ -47,6 +49,9 @@ public class Creature extends Entity implements ActionListener {
 	
 	private Behavior behavior; // current creature behavior
 	
+	private int generation;
+	
+	private Color borderColor;
 	private int sight;
 	private boolean doneMating; // true if creature is done mating but mate is not done
 	private int steps; // how many tiles checked during search
@@ -54,11 +59,16 @@ public class Creature extends Entity implements ActionListener {
 	private int energySpentMating; // number of energy spent mating thus far
 	private int currentMateCooldown;
 	
+	private CreatureViewer viewer;
+	
 	/*
 	 Creature constructor
 	 */
 	public Creature(int x, int y, Color color, int slowness, int energy, int maxEnergy, int daySight, int nightSight, int maxEnergyDuringMating, int mateCooldown, Schedule schedule) {
 		super(x, y);
+		
+		generation = 1;
+		viewer = new CreatureViewer(this);
 		
 		globalData = GlobalData.getInstance();
 		
@@ -80,19 +90,84 @@ public class Creature extends Entity implements ActionListener {
 		steps = 0;
 		energySpentMating = 0;	
 		behavior = Behavior.idle;
+		borderColor = new Color(Math.abs(color.getRed() - 255), Math.abs(color.getGreen() - 255), Math.abs(color.getBlue() - 255));
 		
 		button = new JButton();
 		button.setBounds(posX*globalData.tileSize, posY*globalData.tileSize, globalData.tileSize, globalData.tileSize);
+		button.setFocusable(false);
+		button.setContentAreaFilled(false);
 		button.addActionListener(this);
+		button.setBorder(null);
+		button.addMouseListener(new java.awt.event.MouseAdapter() {
+		    public void mouseEntered(java.awt.event.MouseEvent evt) {
+		    	button.setBorder(new LineBorder(borderColor));
+		    }
+
+		    public void mouseExited(java.awt.event.MouseEvent evt) {
+		    	button.setBorder(null);
+		    }
+		});
 		globalData.getGridPanel().add(button);
 		globalData.getFrame().pack();
 	}
 	
 	/*
+	 Return daySight
+	 */
+	public int getDaySight() {
+		return daySight;
+	}
+	
+	/*
+	 Return schedule object
+	 */
+	public Schedule getSchedule() {
+		return schedule;
+	}
+	
+	/*
+	 Return maxEnergyDuringMating
+	 */
+	public int getMaxEnergyDuringMating() {
+		return maxEnergyDuringMating;
+	}
+	
+	/*
+	 Return nightSight
+	 */
+	public int getNightSight() {
+		return nightSight;
+	}
+	
+	/*
+	 Return speed
+	 speed = 1.0/slowness
+	 */
+	public double getSpeed() {
+		return 1.0 / slowness;
+	}
+
+	/*
+	 Return color
+	 */
+	public Color getColor() {
+		return color;
+	}
+
+	/*
+	 Return mateCooldown
+	 */
+	public int mateCooldown() {
+		return mateCooldown;
+	}
+	
+	/*
 	 Redraw creature every frame
 	 */
+	@Override
 	public void draw(Graphics2D g2) {
 		button.setBounds(posX*globalData.tileSize, posY*globalData.tileSize, globalData.tileSize, globalData.tileSize);
+		//button.repaint();
 		g2.setColor(color);
 		g2.fillRect(posX*globalData.tileSize, posY*globalData.tileSize, globalData.tileSize, globalData.tileSize);
 	}
@@ -114,7 +189,7 @@ public class Creature extends Entity implements ActionListener {
 	}
 	
 	public void actionPerformed(ActionEvent e){  
-		System.out.println("pressed");
+		viewer.setVisible(true);
 	}  
 	
 	/*
@@ -221,6 +296,20 @@ public class Creature extends Entity implements ActionListener {
 		
 
 	}
+
+	/*
+	 Set generation
+	 */
+	private void setGeneration(int generation) {
+		this.generation = generation;
+	}
+	
+	/*
+	 Return generation
+	 */
+	public int getGeneration() {
+		return generation;
+	}
 	
 	/*
 	 Add node to open list
@@ -262,6 +351,7 @@ public class Creature extends Entity implements ActionListener {
 	/*
 	 Update creature every frame
 	 */
+	@Override
 	public void update() {	
 		// set sight
 		if (globalData.getTimerPanel().isDay()) {
@@ -307,6 +397,9 @@ public class Creature extends Entity implements ActionListener {
 		if (foodIndex >= 0) {
 			this.eatFood(entities, foodIndex);
 		}
+		
+		// update viewer
+		viewer.update();
 	}
 	
 	/*
@@ -361,6 +454,7 @@ public class Creature extends Entity implements ActionListener {
 		if (babyPos.length == 2) {
 			Creature baby = new Creature(babyPos[0], babyPos[1], babyColor, babySlowness, babyEnergy, babyMaxEnergy, babyDaySight, babyNightSight, babyMaxEnergyDuringMating, babyMateCooldown, babySchedule);
 			baby.setCurrentMateCooldown(babyMateCooldown);
+			baby.setGeneration(Math.max(this.generation, mate.generation) + 1);
 			globalData.getNewEntities().add(baby);
 		}
 		this.currentMateCooldown = this.mateCooldown;
@@ -603,7 +697,7 @@ public class Creature extends Entity implements ActionListener {
 			if (Math.abs(matePos[0] - x) + Math.abs(matePos[1] - y) > sight) return new Entity(0, 0);
 			Entity entity = globalData.getEntities().getCreature(matePos[0], matePos[1]);
 			if (entity instanceof Creature && !entity.equals(this)) {
-				if (((Creature)entity).getBehavior().equals(Behavior.findMate)) {
+				if (((Creature)entity).behavior.equals(Behavior.findMate)) {
 					return entity;
 				}
 				
@@ -657,6 +751,13 @@ public class Creature extends Entity implements ActionListener {
 	 */
 	public int getEnergy() {
 		return energy;
+	}
+	
+	/*
+	 Return max energy of creature
+	 */
+	public int getMaxEnergy() {
+		return maxEnergy;
 	}
 	
 	/*

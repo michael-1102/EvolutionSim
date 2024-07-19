@@ -18,7 +18,6 @@ public class Entity {
 	 Overridden
 	 */
 	public void draw(Graphics2D g2) {
-		
 	}
 
 	/*
