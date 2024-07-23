@@ -20,6 +20,9 @@ import main.GlobalData;
 
 public class Creature extends Entity implements ActionListener {
 	
+	private static int nextCreatureNum = 1;
+	private int creatureNum;
+	
 	private JButton button;
 	
 	private Node[][] nodes;
@@ -43,6 +46,10 @@ public class Creature extends Entity implements ActionListener {
 	
 	private Creature mate;
 	
+	private Creature parent1;
+	private Creature parent2;
+	private ArrayList<Creature> offspring;
+	
 	static private int dirX[] = { -1, 0, 1, 0 };
 	static private int dirY[] = { 0, 1, 0, -1 };
 	static private List<Integer> dirOptions = Arrays.asList(0, 1, 2, 3);
@@ -64,12 +71,20 @@ public class Creature extends Entity implements ActionListener {
 	/*
 	 Creature constructor
 	 */
-	public Creature(int x, int y, Color color, int slowness, int energy, int maxEnergy, int daySight, int nightSight, int maxEnergyDuringMating, int mateCooldown, Schedule schedule) {
+	public Creature(int x, int y, Color color, int slowness, int energy, int maxEnergy, int daySight, int nightSight, int maxEnergyDuringMating, int mateCooldown, Schedule schedule, Creature parent1, Creature parent2) {
 		super(x, y);
 		
-		generation = 1;
-		viewer = new CreatureViewer(this);
+		creatureNum = nextCreatureNum;
+		nextCreatureNum++;
 		
+		if (!(parent1 == null || parent2 == null)) {
+			this.parent1 = parent1;
+			this.parent2 = parent2;
+			generation = Math.max(parent1.generation, parent2.generation) + 1;
+		} else {
+			generation = 1;
+		}
+		offspring = new ArrayList<Creature>();
 		globalData = GlobalData.getInstance();
 		
 		this.slowness = slowness;
@@ -92,12 +107,15 @@ public class Creature extends Entity implements ActionListener {
 		behavior = Behavior.idle;
 		borderColor = new Color(Math.abs(color.getRed() - 255), Math.abs(color.getGreen() - 255), Math.abs(color.getBlue() - 255));
 		
+		viewer = new CreatureViewer(this);
+		
 		button = new JButton();
 		button.setBounds(posX*globalData.tileSize, posY*globalData.tileSize, globalData.tileSize, globalData.tileSize);
 		button.setFocusable(false);
 		button.setContentAreaFilled(false);
 		button.addActionListener(this);
 		button.setBorder(null);
+		
 		button.addMouseListener(new java.awt.event.MouseAdapter() {
 		    public void mouseEntered(java.awt.event.MouseEvent evt) {
 		    	button.setBorder(new LineBorder(borderColor));
@@ -107,8 +125,31 @@ public class Creature extends Entity implements ActionListener {
 		    	button.setBorder(null);
 		    }
 		});
+		
 		globalData.getGridPanel().add(button);
-		globalData.getFrame().pack();
+			
+	}
+	
+
+	/*
+	 Return parent1
+	 */
+	public Creature getParentOne() {
+		return parent1;
+	}
+	
+	/*
+	 Return parent2
+	 */
+	public Creature getParentTwo() {
+		return parent2;
+	}
+	
+	/*
+	 Return creatureNum
+	 */
+	public int getCreatureNum() {
+		return creatureNum;
 	}
 	
 	/*
@@ -167,7 +208,6 @@ public class Creature extends Entity implements ActionListener {
 	@Override
 	public void draw(Graphics2D g2) {
 		button.setBounds(posX*globalData.tileSize, posY*globalData.tileSize, globalData.tileSize, globalData.tileSize);
-		//button.repaint();
 		g2.setColor(color);
 		g2.fillRect(posX*globalData.tileSize, posY*globalData.tileSize, globalData.tileSize, globalData.tileSize);
 	}
@@ -297,12 +337,6 @@ public class Creature extends Entity implements ActionListener {
 
 	}
 
-	/*
-	 Set generation
-	 */
-	private void setGeneration(int generation) {
-		this.generation = generation;
-	}
 	
 	/*
 	 Return generation
@@ -452,10 +486,11 @@ public class Creature extends Entity implements ActionListener {
 		
 		int[] babyPos = this.getBabyPos(new int[] {mate.posX, mate.posY});
 		if (babyPos.length == 2) {
-			Creature baby = new Creature(babyPos[0], babyPos[1], babyColor, babySlowness, babyEnergy, babyMaxEnergy, babyDaySight, babyNightSight, babyMaxEnergyDuringMating, babyMateCooldown, babySchedule);
+			Creature baby = new Creature(babyPos[0], babyPos[1], babyColor, babySlowness, babyEnergy, babyMaxEnergy, babyDaySight, babyNightSight, babyMaxEnergyDuringMating, babyMateCooldown, babySchedule, this, mate);
 			baby.setCurrentMateCooldown(babyMateCooldown);
-			baby.setGeneration(Math.max(this.generation, mate.generation) + 1);
 			globalData.getNewEntities().add(baby);
+			offspring.add(baby);
+			mate.offspring.add(baby);
 		}
 		this.currentMateCooldown = this.mateCooldown;
 		mate.currentMateCooldown = mate.mateCooldown;
