@@ -6,8 +6,14 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 
 import javax.swing.JPanel;
+
+import entity.Creature;
+import entity.Entity;
+import entity.EntityCollection;
+
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
@@ -50,13 +56,15 @@ public class TimerPanel extends JPanel implements ActionListener {
 		timeLabel = new JLabel("00:00");
 		timeLabel.setHorizontalAlignment(JLabel.LEFT);
 		timeLabel.setVerticalAlignment(JLabel.CENTER);
-		timeLabel.setFont(new Font("Verdana", Font.PLAIN, globalData.tileSize*2));
+		timeLabel.setFont(new Font(Font.MONOSPACED, Font.BOLD, globalData.tileSize*2));
+		timeLabel.setForeground(Color.yellow);
 		this.add(timeLabel, BorderLayout.WEST);
 		
 		dayLabel = new JLabel("Day " + dayCount);
 		dayLabel.setHorizontalAlignment(JLabel.CENTER);
 		dayLabel.setVerticalAlignment(JLabel.CENTER);
-		dayLabel.setFont(new Font("Verdana", Font.PLAIN, (int)(globalData.tileSize*1.5)));
+		dayLabel.setFont(new Font(Font.MONOSPACED, Font.BOLD, (int)(globalData.tileSize*1.5)));
+		dayLabel.setForeground(Color.yellow);
 		this.add(dayLabel, BorderLayout.CENTER);
 		
 		try {
@@ -109,6 +117,13 @@ public class TimerPanel extends JPanel implements ActionListener {
 	public void actionPerformed(ActionEvent e){  
 		globalData.pause();
 		if (globalData.getPaused()) {
+			/*
+			ArrayList<Entity> arr = globalData.getEntities().getEntities();
+			for (Entity entity : arr) {
+				if (entity instanceof Creature)
+					System.out.println(entity.getPosX() + " " + entity.getPosY());
+			}
+			*/
 			pauseButton.setIcon(new ImageIcon(playHoverImg));
 		} else {
 			pauseButton.setIcon(new ImageIcon(pauseHoverImg));

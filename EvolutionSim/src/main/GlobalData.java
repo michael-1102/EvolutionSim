@@ -41,6 +41,8 @@ public class GlobalData {
 	private static int FPS; // FPS
 	private static int unpausedFPS;
 	
+	private static double mutationRate;
+	
 	private static int foodEnergy; // energy gained from eating 1 food
 	
 	private static int maxFoodAge; // food disappears once it reaches this age
@@ -64,8 +66,10 @@ public class GlobalData {
             timerPanel = new TimerPanel();
             
             paused = false;
-            unpausedFPS = 10;
+            unpausedFPS = 100;
             FPS = unpausedFPS;
+            
+            mutationRate = 0.1;
             
             foodEnergy = 10;
             maxFoodAge = 100;
@@ -199,10 +203,17 @@ public class GlobalData {
 	}
 
 	/*
-	 Get paused
+	 Return paused
 	 */
 	public boolean getPaused() {
 		return paused;
+	}
+
+	/*
+	 Return mutationRate
+	 */
+	public double getMutationRate() {
+		return mutationRate;
 	}
 	
 	

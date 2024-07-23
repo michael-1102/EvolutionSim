@@ -8,7 +8,11 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.text.DecimalFormat;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -18,16 +22,16 @@ import javax.swing.JPanel;
 
 public class CreatureViewer extends JDialog {
 	
+	private final static DecimalFormat df = new DecimalFormat( "0.00" );
 	private final static int viewerWidth = 400;
 	private final static int viewerHeight = 450;
 	private final static Color backgroundColor = Color.white;
 	
-	private class CreatureDrawing extends JPanel {
+	private class CreatureDrawing extends SubPanel {
 		
 		public CreatureDrawing() {
+			super();
 			this.setPreferredSize(new Dimension(50, 50));
-			this.setBackground(backgroundColor);
-
 		}
 		
 		@Override
@@ -41,6 +45,22 @@ public class CreatureViewer extends JDialog {
 		public Dimension getPreferredSize() {
 			return new Dimension(20, 20);
 		}
+	}
+	
+	private class SubPanel extends JPanel {
+			
+			public SubPanel() {
+				this.setBackground(backgroundColor);
+			}
+			
+	}
+	
+	private class ViewerButton extends JButton {
+		
+		public ViewerButton() {
+			this.setFocusable(false);
+		}
+		
 	}
 	
 	private CreatureDrawing drawing;
@@ -63,20 +83,21 @@ public class CreatureViewer extends JDialog {
 	private JLabel speedLabelValue;
 
 	
-	private JButton highlightButton;
-	private JButton scheduleButton;
-	private JButton parentOneButton;
-	private JButton parentTwoButton;
+	private ViewerButton highlightButton;
+	private ViewerButton scheduleButton;
+	private ViewerButton parentOneButton;
+	private ViewerButton parentTwoButton;
 	
-	private JButton offspringDropdown;
+	private ViewerButton offspringDropdown;
 	
 	private JLabel parentLabel;
 	
 	private Creature creature;
 	private JPanel panel;
 	
-	private JPanel topPanel;
-	private JPanel bottomPanel;
+	private SubPanel topPanel;
+	private SubPanel middlePanel;
+	private SubPanel bottomPanel;
 	
 	public CreatureViewer(Creature creature) {
 		this.creature = creature;
@@ -89,9 +110,8 @@ public class CreatureViewer extends JDialog {
 		panel.setDoubleBuffered(true);
 		panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 		
-		topPanel = new JPanel();
-		topPanel.setBackground(backgroundColor);
-		topPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
+		topPanel = new SubPanel();
+		topPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 0));
 		topPanel.setLayout(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.anchor = GridBagConstraints.FIRST_LINE_START;
@@ -125,8 +145,19 @@ public class CreatureViewer extends JDialog {
 		
 		c.gridx = 2;
 		c.gridy = 2;
-		highlightButton = new JButton();
+		highlightButton = new ViewerButton();
+		highlightButton.setPreferredSize(new Dimension(80, 30));
 		highlightButton.setText("Highlight");
+		highlightButton.addActionListener((new ActionListener() {
+		    @Override
+		    public void actionPerformed(ActionEvent evt) {
+		       if (creature.toggleHighlight()) {
+			       highlightButton.setText("Highlight");
+		       } else {
+			       highlightButton.setText("Un-Highlight");
+		       }
+		    }
+		}));
 		topPanel.add(highlightButton, c);
 		
 		c.insets = new Insets(0, 10, 0, 0);
@@ -137,100 +168,112 @@ public class CreatureViewer extends JDialog {
 		
 		panel.add(topPanel);
 		
-		bottomPanel = new JPanel();
-		bottomPanel.setBackground(backgroundColor);
-		bottomPanel.setLayout(new GridBagLayout());
+		middlePanel = new SubPanel();
+		middlePanel.setLayout(new GridBagLayout());
 		
 		c.gridx = 0;
 		c.gridy = 5;
 		maxEnergyLabel = new JLabel();
-		bottomPanel.add(maxEnergyLabel, c);
+		middlePanel.add(maxEnergyLabel, c);
 		maxEnergyLabel.setText("Maximum Energy:");
 		
 		c.gridx = 1;
 		c.gridy = 5;
 		maxEnergyLabelValue = new JLabel();
-		bottomPanel.add(maxEnergyLabelValue, c);
+		middlePanel.add(maxEnergyLabelValue, c);
 		maxEnergyLabelValue.setText(Integer.toString(creature.getMaxEnergy()));
 		
 		c.gridx = 0;
 		c.gridy = 6;
 		energyGivenDuringMatingLabel = new JLabel();
-		bottomPanel.add(energyGivenDuringMatingLabel, c);
+		middlePanel.add(energyGivenDuringMatingLabel, c);
 		energyGivenDuringMatingLabel.setText("Energy Given To Each Offspring:");
 		
 		c.gridx = 1;
 		c.gridy = 6;
 		energyGivenDuringMatingLabelValue = new JLabel();
-		bottomPanel.add(energyGivenDuringMatingLabelValue, c);
+		middlePanel.add(energyGivenDuringMatingLabelValue, c);
 		energyGivenDuringMatingLabelValue.setText(Integer.toString(creature.getMaxEnergyDuringMating()));
 		
 		c.gridx = 0;
 		c.gridy = 7;
 		daySightLabel = new JLabel();
-		bottomPanel.add(daySightLabel, c);
+		middlePanel.add(daySightLabel, c);
 		daySightLabel.setText("Daytime Vision:");
 		
 		c.gridx = 1;
 		c.gridy = 7;
 		daySightLabelValue = new JLabel();
-		bottomPanel.add(daySightLabelValue, c);
+		middlePanel.add(daySightLabelValue, c);
 		daySightLabelValue.setText(Integer.toString(creature.getDaySight()));
 		
 		c.gridx = 0;
 		c.gridy = 8;
 		nightSightLabel = new JLabel();
-		bottomPanel.add(nightSightLabel, c);
+		middlePanel.add(nightSightLabel, c);
 		nightSightLabel.setText("Nighttime Vision:");
 		
 		c.gridx = 1;
 		c.gridy = 8;
 		nightSightLabelValue = new JLabel();
-		bottomPanel.add(nightSightLabelValue, c);
+		middlePanel.add(nightSightLabelValue, c);
 		nightSightLabelValue.setText(Integer.toString(creature.getNightSight()));
 		
 		c.gridx = 0;
 		c.gridy = 9;
 		speedLabel = new JLabel();
-		bottomPanel.add(speedLabel, c);
+		middlePanel.add(speedLabel, c);
 		speedLabel.setText("Speed:");
 		
 		c.gridx = 1;
 		c.gridy = 9;
 		speedLabelValue = new JLabel();
-		bottomPanel.add(speedLabelValue, c);
-		speedLabelValue.setText(Double.toString(creature.getSpeed()));
+		middlePanel.add(speedLabelValue, c);
+		speedLabelValue.setText(df.format(creature.getSpeed()));
 		
-		c.gridx = 0;
-		c.gridy = 11;
-		scheduleButton = new JButton();
-		bottomPanel.add(scheduleButton, c);
+		panel.add(middlePanel);
+		
+		bottomPanel = new SubPanel();
+		GridLayout gridLayout = new GridLayout(3, 2);
+		gridLayout.setHgap(10);
+		bottomPanel.setLayout(gridLayout);
+		
+		scheduleButton = new ViewerButton();
+		bottomPanel.add(scheduleButton);
 		scheduleButton.setText("View Schedule");
 		
-		c.gridx = 1;
-		c.gridy = 11;
-		offspringDropdown = new JButton(); // to be made into a dropdown
-		bottomPanel.add(offspringDropdown, c);
+		offspringDropdown = new ViewerButton(); // to be made into a dropdown
+		bottomPanel.add(offspringDropdown);
 		offspringDropdown.setText("Offspring    V");
 		
-		c.gridx = 0;
-		c.gridy = 13;
 		parentLabel = new JLabel();
 		bottomPanel.add(parentLabel, c);
-		parentLabel.setText("Parents");
+		parentLabel.setText("Parents:");
 		
-		c.gridx = 0;
-		c.gridy = 14;
-		parentOneButton = new JButton();
-		bottomPanel.add(parentOneButton, c);
+		bottomPanel.add(new SubPanel());
 		
-		c.gridx = 1;
-		c.gridy = 14;
-		parentTwoButton = new JButton();
-		bottomPanel.add(parentTwoButton, c);
-	
 		Creature parent1 = creature.getParentOne();
 		Creature parent2 = creature.getParentTwo();
+		
+		parentOneButton = new ViewerButton();
+		parentOneButton.addActionListener((new ActionListener() {
+		    @Override
+		    public void actionPerformed(ActionEvent evt) {
+		    	parent1.openViewer();
+		    }
+		}));
+		bottomPanel.add(parentOneButton);
+		
+		parentTwoButton = new ViewerButton();
+		parentTwoButton.addActionListener((new ActionListener() {
+		    @Override
+		    public void actionPerformed(ActionEvent evt) {
+		    	parent2.openViewer();
+		    }
+		}));
+		bottomPanel.add(parentTwoButton);
+	
+		
 		if (parent1 == null || parent2 == null) {
 			parentOneButton.setText("N/A");
 			parentTwoButton.setText("N/A");

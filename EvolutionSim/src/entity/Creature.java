@@ -58,6 +58,7 @@ public class Creature extends Entity implements ActionListener {
 	
 	private int generation;
 	
+	private boolean highlighted;
 	private Color borderColor;
 	private int sight;
 	private boolean doneMating; // true if creature is done mating but mate is not done
@@ -78,8 +79,14 @@ public class Creature extends Entity implements ActionListener {
 		nextCreatureNum++;
 		
 		if (!(parent1 == null || parent2 == null)) {
-			this.parent1 = parent1;
-			this.parent2 = parent2;
+			if (parent1.creatureNum < parent2.creatureNum) { // parent1 should be parent with lower creature number
+				this.parent1 = parent1;
+				this.parent2 = parent2;
+			} else {
+				this.parent2 = parent1;
+				this.parent1 = parent2;
+			}
+			
 			generation = Math.max(parent1.generation, parent2.generation) + 1;
 		} else {
 			generation = 1;
@@ -115,6 +122,7 @@ public class Creature extends Entity implements ActionListener {
 		button.setContentAreaFilled(false);
 		button.addActionListener(this);
 		button.setBorder(null);
+		highlighted = false;
 		
 		button.addMouseListener(new java.awt.event.MouseAdapter() {
 		    public void mouseEntered(java.awt.event.MouseEvent evt) {
@@ -122,7 +130,8 @@ public class Creature extends Entity implements ActionListener {
 		    }
 
 		    public void mouseExited(java.awt.event.MouseEvent evt) {
-		    	button.setBorder(null);
+		    	if (!highlighted)
+		    		button.setBorder(null);
 		    }
 		});
 		
@@ -130,6 +139,21 @@ public class Creature extends Entity implements ActionListener {
 			
 	}
 	
+	/*
+	 Highlights if unhighlighted, unhighlights if highlighted
+	 Returns previous value of highlighted
+	 */
+	public boolean toggleHighlight() {
+		if (highlighted) {
+			button.setBorder(null);
+			highlighted = false;
+			return true;
+		} else {
+	    	button.setBorder(new LineBorder(borderColor));
+			highlighted = true;
+			return false;
+		}
+	}
 
 	/*
 	 Return parent1
@@ -229,8 +253,12 @@ public class Creature extends Entity implements ActionListener {
 	}
 	
 	public void actionPerformed(ActionEvent e){  
-		viewer.setVisible(true);
+		this.openViewer();
 	}  
+	
+	public void openViewer() {
+		viewer.setVisible(true);
+	}
 	
 	/*
 	 Set starting node in path finding
@@ -377,6 +405,8 @@ public class Creature extends Entity implements ActionListener {
 	 */
 	public boolean isDead() {
 		if (energy <= 0) {
+			globalData.getGridPanel().remove(button);
+			viewer.setVisible(false);
 			return true;
 		}
 		return false;
@@ -514,8 +544,14 @@ public class Creature extends Entity implements ActionListener {
 		double percent = Math.random();
 		double babyStatDouble = ((stat1*percent) + (stat2*(1.0-percent)));
 		
-		double percentMutation = (Math.random() * 10.0 - 5.0) / 100.0;
-		int babyStatInt = (int) Math.round(babyStatDouble * (1.0+percentMutation));
+		double mutationRate = globalData.getMutationRate();
+		double mutationInstance = Math.random() * (mutationRate*2) - mutationRate;
+		int babyStatInt = (int) Math.round(babyStatDouble * (1.0+mutationInstance));
+		if (babyStatInt == 0) { // if stat = 0, there's a mutationRate chance it can become 1
+			double mutationInstance2 = Math.random();
+			if (mutationInstance2 <= mutationRate)
+				babyStatInt = 1;
+		}
 		return babyStatInt;
 	}
 	
@@ -533,19 +569,21 @@ public class Creature extends Entity implements ActionListener {
 	private int[] getBabyPos(int[] matePos) {
 		Collections.shuffle(dirOptions);
 		int[] babyPos = new int[2];
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < 4; i++) { // check positions next to one parent
 				babyPos[0] = posX+dirX[dirOptions.get(i)];
 				babyPos[1] = posY+dirY[dirOptions.get(i)];
+				if (babyPos[0] < globalData.maxScreenRow - 1 && babyPos[0] > 0 && babyPos[1] < globalData.maxScreenCol - 1 && babyPos[1] > 0)
+					if (globalData.getEntities().posNotSolid(babyPos[0], babyPos[1])) {
+						return babyPos;
+					}
+		}
+		for (int i = 0; i < 4; i++) { // check positions next to other parent
+			babyPos[0] = matePos[0]+dirX[dirOptions.get(i)];
+			babyPos[1] = matePos[1]+dirY[dirOptions.get(i)];
+			if (babyPos[0] < globalData.maxScreenRow - 1 && babyPos[0] > 0 && babyPos[1] < globalData.maxScreenCol - 1 && babyPos[1] > 0)
 				if (globalData.getEntities().posNotSolid(babyPos[0], babyPos[1])) {
 					return babyPos;
 				}
-		}
-		for (int i = 0; i < 4; i++) {
-			babyPos[0] = matePos[0]+dirX[dirOptions.get(i)];
-			babyPos[1] = matePos[1]+dirY[dirOptions.get(i)];
-			if (globalData.getEntities().posNotSolid(babyPos[0], babyPos[1])) {
-				return babyPos;
-			}
 		}
 		return new int[1];
 	}
