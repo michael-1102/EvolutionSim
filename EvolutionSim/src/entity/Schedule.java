@@ -39,13 +39,13 @@ public class Schedule {
 		double mutationRate = globalData.getMutationRate();
 		for (int i = 0; i < schedule.length; i++) {
 			rand = Math.random();
-			if (rand >= mutationRate * 2) { 
+			if (rand >= mutationRate) { 
 				if (random.nextInt(2) == 0) {
 					babySchedule[i] = this.schedule[i];
 				} else {
 					babySchedule[i] = mateSchedule.schedule[i];
 				}
-			} else if (rand >= mutationRate) {
+			} else if (rand >= mutationRate / 2) {
 				switch(random.nextInt(6)) {
 				case 5:
 					babySchedule[i] = mateSchedule.schedule[Math.floorMod(i+1, mateSchedule.schedule.length)];
