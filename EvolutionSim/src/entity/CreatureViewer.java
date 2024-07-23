@@ -1,26 +1,40 @@
 package entity;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.GridLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
 public class CreatureViewer extends JDialog {
 	
-	private final static int viewerWidth = 300;
-	private final static int viewerHeight = 350;
-	
+	private final static int viewerWidth = 400;
+	private final static int viewerHeight = 450;
+	private final static Color backgroundColor = Color.white;
 	
 	private class CreatureDrawing extends JPanel {
+		
+		public CreatureDrawing() {
+			this.setPreferredSize(new Dimension(50, 50));
+			this.setBackground(backgroundColor);
+
+		}
+		
 		@Override
 		public void paintComponent(Graphics g) {
 			super.paintComponent(g);
 			g.setColor(creature.getColor());
-			g.fillRect(0, 0, 20, 20);
+			g.fillRect(10, 10, 40, 40);
 		}
 
 		@Override
@@ -31,40 +45,224 @@ public class CreatureViewer extends JDialog {
 	
 	private CreatureDrawing drawing;
 	
-	private JLabel genLabel;
-	private JLabel posLabel;
+	private JLabel creatureNumLabel;
+	private JLabel generationLabel;
+	private JLabel positionLabel;
+	private JLabel energyLabel;
 	
+	private JLabel maxEnergyLabel;
+	private JLabel energyGivenDuringMatingLabel;
+	private JLabel daySightLabel;
+	private JLabel nightSightLabel;
+	private JLabel speedLabel;
+	
+	private JLabel maxEnergyLabelValue;
+	private JLabel energyGivenDuringMatingLabelValue;
+	private JLabel daySightLabelValue;
+	private JLabel nightSightLabelValue;
+	private JLabel speedLabelValue;
+
+	
+	private JButton highlightButton;
+	private JButton scheduleButton;
+	private JButton parentOneButton;
+	private JButton parentTwoButton;
+	
+	private JButton offspringDropdown;
+	
+	private JLabel parentLabel;
 	
 	private Creature creature;
 	private JPanel panel;
 	
+	private JPanel topPanel;
+	private JPanel bottomPanel;
+	
 	public CreatureViewer(Creature creature) {
 		this.creature = creature;
 		this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-		this.setResizable(false);
+		this.setResizable(true);
 		this.setTitle("Creature Viewer");
-		this.panel = new JPanel();
+		panel = new JPanel();
 		panel.setPreferredSize(new Dimension(viewerWidth, viewerHeight));
-		panel.setBackground(Color.white);
+		panel.setBackground(backgroundColor);
 		panel.setDoubleBuffered(true);
-		panel.setLayout(new GridLayout(3, 1));
+		panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
 		
+		topPanel = new JPanel();
+		topPanel.setBackground(backgroundColor);
+		topPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 100));
+		topPanel.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.anchor = GridBagConstraints.FIRST_LINE_START;
+		c.fill = GridBagConstraints.BOTH;
+		c.weightx = .5;
+		c.weighty = .5;
+		c.gridheight = 3;
+		c.gridwidth = 1;
+		c.gridx = 0;
+		c.gridy = 0;
 		drawing = new CreatureDrawing();
-		drawing.setBackground(Color.white);
-		panel.add(drawing);
-		genLabel = new JLabel();
-		panel.add(genLabel);
-		posLabel = new JLabel();
-		panel.add(posLabel);
+		topPanel.add(drawing, c);
 		
+		c.gridheight = 1;
+		c.gridx = 1;
+		c.gridy = 0;
+		creatureNumLabel = new JLabel();
+		topPanel.add(creatureNumLabel, c);
+		creatureNumLabel.setText("Creature #" + creature.getCreatureNum());
+			
+		c.gridx = 1;
+		c.gridy = 1;
+		generationLabel = new JLabel();
+		topPanel.add(generationLabel, c);
+		generationLabel.setText("Generation: " + creature.getGeneration());
+
+		c.gridx = 1;
+		c.gridy = 2;
+		positionLabel = new JLabel();
+		topPanel.add(positionLabel, c);
+		
+		c.gridx = 2;
+		c.gridy = 2;
+		highlightButton = new JButton();
+		highlightButton.setText("Highlight");
+		topPanel.add(highlightButton, c);
+		
+		c.insets = new Insets(0, 10, 0, 0);
+		c.gridx = 0;
+		c.gridy = 3;
+		energyLabel = new JLabel();
+		topPanel.add(energyLabel, c);
+		
+		panel.add(topPanel);
+		
+		bottomPanel = new JPanel();
+		bottomPanel.setBackground(backgroundColor);
+		bottomPanel.setLayout(new GridBagLayout());
+		
+		c.gridx = 0;
+		c.gridy = 5;
+		maxEnergyLabel = new JLabel();
+		bottomPanel.add(maxEnergyLabel, c);
+		maxEnergyLabel.setText("Maximum Energy:");
+		
+		c.gridx = 1;
+		c.gridy = 5;
+		maxEnergyLabelValue = new JLabel();
+		bottomPanel.add(maxEnergyLabelValue, c);
+		maxEnergyLabelValue.setText(Integer.toString(creature.getMaxEnergy()));
+		
+		c.gridx = 0;
+		c.gridy = 6;
+		energyGivenDuringMatingLabel = new JLabel();
+		bottomPanel.add(energyGivenDuringMatingLabel, c);
+		energyGivenDuringMatingLabel.setText("Energy Given To Each Offspring:");
+		
+		c.gridx = 1;
+		c.gridy = 6;
+		energyGivenDuringMatingLabelValue = new JLabel();
+		bottomPanel.add(energyGivenDuringMatingLabelValue, c);
+		energyGivenDuringMatingLabelValue.setText(Integer.toString(creature.getMaxEnergyDuringMating()));
+		
+		c.gridx = 0;
+		c.gridy = 7;
+		daySightLabel = new JLabel();
+		bottomPanel.add(daySightLabel, c);
+		daySightLabel.setText("Daytime Vision:");
+		
+		c.gridx = 1;
+		c.gridy = 7;
+		daySightLabelValue = new JLabel();
+		bottomPanel.add(daySightLabelValue, c);
+		daySightLabelValue.setText(Integer.toString(creature.getDaySight()));
+		
+		c.gridx = 0;
+		c.gridy = 8;
+		nightSightLabel = new JLabel();
+		bottomPanel.add(nightSightLabel, c);
+		nightSightLabel.setText("Nighttime Vision:");
+		
+		c.gridx = 1;
+		c.gridy = 8;
+		nightSightLabelValue = new JLabel();
+		bottomPanel.add(nightSightLabelValue, c);
+		nightSightLabelValue.setText(Integer.toString(creature.getNightSight()));
+		
+		c.gridx = 0;
+		c.gridy = 9;
+		speedLabel = new JLabel();
+		bottomPanel.add(speedLabel, c);
+		speedLabel.setText("Speed:");
+		
+		c.gridx = 1;
+		c.gridy = 9;
+		speedLabelValue = new JLabel();
+		bottomPanel.add(speedLabelValue, c);
+		speedLabelValue.setText(Double.toString(creature.getSpeed()));
+		
+		c.gridx = 0;
+		c.gridy = 11;
+		scheduleButton = new JButton();
+		bottomPanel.add(scheduleButton, c);
+		scheduleButton.setText("View Schedule");
+		
+		c.gridx = 1;
+		c.gridy = 11;
+		offspringDropdown = new JButton(); // to be made into a dropdown
+		bottomPanel.add(offspringDropdown, c);
+		offspringDropdown.setText("Offspring    V");
+		
+		c.gridx = 0;
+		c.gridy = 13;
+		parentLabel = new JLabel();
+		bottomPanel.add(parentLabel, c);
+		parentLabel.setText("Parents");
+		
+		c.gridx = 0;
+		c.gridy = 14;
+		parentOneButton = new JButton();
+		bottomPanel.add(parentOneButton, c);
+		
+		c.gridx = 1;
+		c.gridy = 14;
+		parentTwoButton = new JButton();
+		bottomPanel.add(parentTwoButton, c);
+	
+		Creature parent1 = creature.getParentOne();
+		Creature parent2 = creature.getParentTwo();
+		if (parent1 == null || parent2 == null) {
+			parentOneButton.setText("N/A");
+			parentTwoButton.setText("N/A");
+			parentOneButton.setEnabled(false);
+			parentTwoButton.setEnabled(false);
+		} else {
+			parentOneButton.setText("Creature #" + parent1.getCreatureNum());
+			parentTwoButton.setText("Creature #" + parent2.getCreatureNum());
+
+		}
+		
+		panel.add(bottomPanel);
+		
+		CreatureViewer.changeFont(panel, new Font(Font.MONOSPACED, Font.PLAIN, 12));
 		this.add(panel);
 		this.pack();
 	}
 	
 	public void update() {
-		genLabel.setText("Generation: " + creature.getGeneration());
-		posLabel.setText("X: " + creature.posX + "   Y: " + creature.posY);
-		
+		positionLabel.setText("X: " + creature.posX + "   Y: " + creature.posY);
+		energyLabel.setText("Energy: " + creature.getEnergy());
 	}
+	
+	public static void changeFont(Component component, Font font) {
+	    component.setFont (font);
+	    if (component instanceof Container) {
+	        for (Component child : ((Container) component).getComponents()) {
+	            changeFont (child, font);
+	        }
+	    }
+	}
+
+	
 	
 }

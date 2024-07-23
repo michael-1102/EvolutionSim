@@ -93,9 +93,9 @@ public class GlobalData {
 			behaviors3[i] = Behavior.findMate;
 		}
 		
-		entities.addCreature(new Creature(4, 4, new Color(255, 0, 23), 10, 100, 1000, 20, 20, 10, 1000, new Schedule(behaviors1)));
-		entities.addCreature(new Creature(10, 8, new Color(0, 100, 100), 10, 100, 1000, 20, 20, 10, 1000, new Schedule(behaviors2)));
-		entities.addCreature(new Creature(30, 4, new Color(200, 0, 255), 10, 100, 1000, 20, 20, 10, 1000, new Schedule(behaviors3)));
+		entities.addCreature(new Creature(4, 4, new Color(255, 0, 23), 10, 100, 1000, 20, 20, 10, 1000, new Schedule(behaviors1), null, null));
+		entities.addCreature(new Creature(10, 8, new Color(0, 100, 100), 10, 100, 1000, 20, 20, 10, 1000, new Schedule(behaviors2), null, null));
+		entities.addCreature(new Creature(30, 4, new Color(200, 0, 255), 10, 100, 1000, 20, 20, 10, 1000, new Schedule(behaviors3), null, null));
 
 	}
 	
