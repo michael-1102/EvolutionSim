@@ -35,13 +35,40 @@ public class Schedule {
 	
 	public Schedule getBabySchedule(Schedule mateSchedule) {
 		Behavior[] babySchedule = new Behavior[schedule.length];
+		double rand;
+		double mutationRate = globalData.getMutationRate();
 		for (int i = 0; i < schedule.length; i++) {
-			if (this.schedule[i].equals(mateSchedule.schedule[i])) {
-				babySchedule[i] = this.schedule[i];
+			rand = Math.random();
+			if (rand >= mutationRate * 2) { 
+				if (random.nextInt(2) == 0) {
+					babySchedule[i] = this.schedule[i];
+				} else {
+					babySchedule[i] = mateSchedule.schedule[i];
+				}
+			} else if (rand >= mutationRate) {
+				switch(random.nextInt(6)) {
+				case 5:
+					babySchedule[i] = mateSchedule.schedule[Math.floorMod(i+1, mateSchedule.schedule.length)];
+					break;
+				case 4:
+					babySchedule[i] = this.schedule[Math.floorMod(i+1, schedule.length)];
+					break;
+				case 3:
+					babySchedule[i] = mateSchedule.schedule[Math.floorMod(i-1, mateSchedule.schedule.length)];
+					break;
+				case 2:
+					babySchedule[i] = this.schedule[Math.floorMod(i-1, schedule.length)];
+					break;
+				case 1:
+					babySchedule[i] = mateSchedule.schedule[i];
+					break;
+				case 0:
+					babySchedule[i] = this.schedule[i];
+					break;
+				default:
+					break;
+				}
 			} else {
-				// needs work
-			}
-			if (Math.random() <= globalData.getMutationRate()) {
 				babySchedule[i] = getRandomBehavior();
 			}
 		}
