@@ -14,6 +14,14 @@ public class Entity {
 		posY = y;
 	}
 	
+	public int getPosX() {
+		return posX;
+	}
+	
+	public int getPosY() {
+		return posY;
+	}
+	
 	/*
 	 Overridden
 	 */
