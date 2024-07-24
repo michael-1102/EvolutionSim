@@ -6,13 +6,9 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
 
 import javax.swing.JPanel;
 
-import entity.Creature;
-import entity.Entity;
-import entity.EntityCollection;
 
 import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
@@ -117,18 +113,12 @@ public class TimerPanel extends JPanel implements ActionListener {
 	public void actionPerformed(ActionEvent e){  
 		globalData.pause();
 		if (globalData.getPaused()) {
-			/*
-			ArrayList<Entity> arr = globalData.getEntities().getEntities();
-			for (Entity entity : arr) {
-				if (entity instanceof Creature)
-					System.out.println(entity.getPosX() + " " + entity.getPosY());
-			}
-			*/
 			pauseButton.setIcon(new ImageIcon(playHoverImg));
 		} else {
 			pauseButton.setIcon(new ImageIcon(pauseHoverImg));
 		}
 	}  
+	
 	
 	public void incrementTime() {
 		time++;
@@ -158,5 +148,12 @@ public class TimerPanel extends JPanel implements ActionListener {
 		int mins =(int) (1.0*minsInDay/fullDayLength * time);
 		int hour = mins/minsInHour % hoursInDay;
 		return (hour >= dayCutOff && hour < hoursInDay/2 + dayCutOff);
+	}
+	
+	/*
+	 converts number of frames to number of minutes
+	 */
+	public static int framesToMins(int frames) {
+		return (int) (1.0 * frames / fullDayLength * minsInDay);
 	}
 }

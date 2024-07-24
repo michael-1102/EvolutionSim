@@ -43,6 +43,8 @@ public class GlobalData {
 	
 	private static double mutationRate;
 	
+	private static int maxSight; // constant value of daySight + nightSight
+	
 	private static int foodEnergy; // energy gained from eating 1 food
 	
 	private static int maxFoodAge; // food disappears once it reaches this age
@@ -71,6 +73,8 @@ public class GlobalData {
             
             mutationRate = 0.1;
             
+            maxSight = 40;
+            
             foodEnergy = 10;
             maxFoodAge = 100;
             
@@ -90,17 +94,22 @@ public class GlobalData {
 	public void setUpSim() {
 		Behavior[] behaviors1 = new Behavior[96];
 		Behavior[] behaviors2 = new Behavior[96];
-		Behavior[] behaviors3 = new Behavior[96];
 		for (int i = 0; i < 96; i++) {
 			behaviors1[i] = Behavior.findMate;
-			behaviors2[i] = Behavior.findMate;
-			behaviors3[i] = Behavior.findMate;
+			behaviors2[i] = Behavior.eat;
 		}
 		
-		entities.addCreature(new Creature(4, 4, new Color(255, 0, 23), 10, 100, 1000, 20, 20, 10, 1000, new Schedule(behaviors1), null, null));
-		entities.addCreature(new Creature(10, 8, new Color(0, 100, 100), 10, 100, 1000, 20, 20, 10, 1000, new Schedule(behaviors2), null, null));
-		entities.addCreature(new Creature(30, 4, new Color(200, 0, 255), 10, 100, 1000, 20, 20, 10, 1000, new Schedule(behaviors3), null, null));
+		entities.addCreature(new Creature(4, 4, new Color(255, 0, 23), 10, 100, 200, 20, 10, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
+		entities.addCreature(new Creature(10, 8, new Color(0, 100, 100), 10, 100, 200, 20, 10, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
+		entities.addCreature(new Creature(30, 4, new Color(200, 0, 255), 10, 100, 200, 20, 10, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
 
+	}
+	
+	/*
+	 Return maxSight
+	 */
+	public int getMaxSight() {
+		return maxSight;
 	}
 	
 	/*

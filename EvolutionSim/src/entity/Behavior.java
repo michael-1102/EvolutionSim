@@ -1,7 +1,5 @@
 package entity;
 
-import java.util.ArrayList;
-import java.util.Random;
 
 public enum Behavior {
 	eat(true, true), // move to food

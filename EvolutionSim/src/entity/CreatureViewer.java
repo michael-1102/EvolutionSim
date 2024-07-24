@@ -20,6 +20,8 @@ import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import main.TimerPanel;
+
 public class CreatureViewer extends JDialog {
 	
 	private final static DecimalFormat df = new DecimalFormat( "0.00" );
@@ -72,12 +74,14 @@ public class CreatureViewer extends JDialog {
 	
 	private JLabel maxEnergyLabel;
 	private JLabel energyGivenDuringMatingLabel;
+	private JLabel matingCooldownLabel;
 	private JLabel daySightLabel;
 	private JLabel nightSightLabel;
 	private JLabel speedLabel;
 	
 	private JLabel maxEnergyLabelValue;
 	private JLabel energyGivenDuringMatingLabelValue;
+	private JLabel matingCooldownLabelValue;
 	private JLabel daySightLabelValue;
 	private JLabel nightSightLabelValue;
 	private JLabel speedLabelValue;
@@ -197,36 +201,55 @@ public class CreatureViewer extends JDialog {
 		
 		c.gridx = 0;
 		c.gridy = 7;
+		matingCooldownLabel = new JLabel();
+		middlePanel.add(matingCooldownLabel, c);
+		matingCooldownLabel.setText("Mating Cooldown:");
+		
+		c.gridx = 1;
+		c.gridy = 7;
+		matingCooldownLabelValue = new JLabel();
+		middlePanel.add(matingCooldownLabelValue, c);
+		int mateCooldownInMins = TimerPanel.framesToMins(creature.getMateCooldown());
+		int mateCooldownHours = mateCooldownInMins / 60;
+		if (mateCooldownHours > 0) {
+			matingCooldownLabelValue.setText(mateCooldownHours + "h " + mateCooldownInMins % 60 + "m");
+
+		} else {
+			matingCooldownLabelValue.setText(mateCooldownInMins + "m");
+		}
+		
+		c.gridx = 0;
+		c.gridy = 8;
 		daySightLabel = new JLabel();
 		middlePanel.add(daySightLabel, c);
 		daySightLabel.setText("Daytime Vision:");
 		
 		c.gridx = 1;
-		c.gridy = 7;
+		c.gridy = 8;
 		daySightLabelValue = new JLabel();
 		middlePanel.add(daySightLabelValue, c);
 		daySightLabelValue.setText(Integer.toString(creature.getDaySight()));
 		
 		c.gridx = 0;
-		c.gridy = 8;
+		c.gridy = 9;
 		nightSightLabel = new JLabel();
 		middlePanel.add(nightSightLabel, c);
 		nightSightLabel.setText("Nighttime Vision:");
 		
 		c.gridx = 1;
-		c.gridy = 8;
+		c.gridy = 9;
 		nightSightLabelValue = new JLabel();
 		middlePanel.add(nightSightLabelValue, c);
 		nightSightLabelValue.setText(Integer.toString(creature.getNightSight()));
 		
 		c.gridx = 0;
-		c.gridy = 9;
+		c.gridy = 10;
 		speedLabel = new JLabel();
 		middlePanel.add(speedLabel, c);
 		speedLabel.setText("Speed:");
 		
 		c.gridx = 1;
-		c.gridy = 9;
+		c.gridy = 10;
 		speedLabelValue = new JLabel();
 		middlePanel.add(speedLabelValue, c);
 		speedLabelValue.setText(df.format(creature.getSpeed()));
