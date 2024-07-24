@@ -20,6 +20,8 @@ import main.GlobalData;
 
 public class Creature extends Entity implements ActionListener {
 	
+	final private static int nightSightPenalty = 5; // amount of sight removed at night
+	
 	private static int nextCreatureNum = 1;
 	private int creatureNum;
 	
@@ -34,15 +36,19 @@ public class Creature extends Entity implements ActionListener {
 	
 	// attributes
 	private int slowness;
-	private int energy;
 	private int maxEnergy;
 	private int daySight;
 	private int nightSight;
 	private Schedule schedule;
+	private Schedule backupSchedule;
 	private int maxEnergyDuringMating; // amount of energy that creature is willing to give to mate
 	private Color color;
 	private int mateCooldown; // number of frames after mating / being born during which the creature cannot mate
 	// end of attributes
+	
+	private int energy;
+	private int fatigue;
+	private int hunger;
 	
 	private Creature mate;
 	
@@ -57,7 +63,8 @@ public class Creature extends Entity implements ActionListener {
 	private Behavior behavior; // current creature behavior
 	
 	private int generation;
-	
+
+	private boolean triedBackupBehavior;
 	private boolean highlighted;
 	private Color borderColor;
 	private int sight;
@@ -72,7 +79,7 @@ public class Creature extends Entity implements ActionListener {
 	/*
 	 Creature constructor
 	 */
-	public Creature(int x, int y, Color color, int slowness, int energy, int maxEnergy, int daySight, int nightSight, int maxEnergyDuringMating, int mateCooldown, Schedule schedule, Creature parent1, Creature parent2) {
+	public Creature(int x, int y, Color color, int slowness, int energy, int maxEnergy, int daySight, int maxEnergyDuringMating, int mateCooldown, Schedule schedule, Schedule backupSchedule, Creature parent1, Creature parent2) {
 		super(x, y);
 		
 		creatureNum = nextCreatureNum;
@@ -99,8 +106,9 @@ public class Creature extends Entity implements ActionListener {
 		this.energy = energy;
 		this.maxEnergy = maxEnergy;
 		this.daySight = daySight;
-		this.nightSight= nightSight;
+		this.nightSight= globalData.getMaxSight() - daySight;
 		this.schedule = schedule;
+		this.backupSchedule = backupSchedule;
 		this.maxEnergyDuringMating = maxEnergyDuringMating;
 		this.mateCooldown = mateCooldown;
 		maxSteps = globalData.maxScreenCol * globalData.maxScreenRow;
@@ -111,6 +119,8 @@ public class Creature extends Entity implements ActionListener {
 		doneMating = false;
 		steps = 0;
 		energySpentMating = 0;	
+		fatigue = 0;
+		hunger = 0;
 		behavior = Behavior.idle;
 		borderColor = new Color(Math.abs(color.getRed() - 255), Math.abs(color.getGreen() - 255), Math.abs(color.getBlue() - 255));
 		
@@ -222,8 +232,15 @@ public class Creature extends Entity implements ActionListener {
 	/*
 	 Return mateCooldown
 	 */
-	public int mateCooldown() {
+	public int getMateCooldown() {
 		return mateCooldown;
+	}
+	
+	/*
+	 Return currentMateCooldown
+	 */
+	public int getCurrentMateCooldown() {
+		return currentMateCooldown;
 	}
 	
 	/*
@@ -416,40 +433,23 @@ public class Creature extends Entity implements ActionListener {
 	 Update creature every frame
 	 */
 	@Override
-	public void update() {	
+	public void update() {
+		// add hunger
+		
+		triedBackupBehavior = false;
+		
 		// set sight
 		if (globalData.getTimerPanel().isDay()) {
 			sight = daySight;
 		} else {
-			sight = nightSight;
+			sight = nightSight - nightSightPenalty;
 		}
 		
 		if (behavior.isSchedulable())
 			behavior = schedule.getCurrentBehavior();
 		
-		
-		if (!(behavior.isMoving() && globalData.getTimerPanel().getTime() % slowness != 0)) { // don't do anything if moving but not time to move
-			// behavior
-			switch(behavior) {
-			case eat:
-				this.moveToFood();
-				break;
-			case idle:
-				break;
-			case mate:
-				this.doMating();
-				break;
-			case findMate:
-				this.moveToMate();
-				break;
-			case random:
-				this.moveRandom();
-				break;
-			default:
-				break;
-				
-			}
-		}
+		// perform based on behavior
+		this.doBehavior(behavior);
 		
 		if (currentMateCooldown > 0) {
 			currentMateCooldown--;
@@ -464,6 +464,10 @@ public class Creature extends Entity implements ActionListener {
 		
 		// update viewer
 		viewer.update();
+	}
+	
+	private void doNothing() {
+		// remove fatigue
 	}
 	
 	/*
@@ -488,6 +492,36 @@ public class Creature extends Entity implements ActionListener {
 	}
 	
 	/*
+	 Do given behavior
+	 */
+	private void doBehavior(Behavior behavior) {
+		
+		if (!(behavior.isMoving() && globalData.getTimerPanel().getTime() % slowness != 0)) { // don't do anything if moving but not time to move
+			// behavior
+			switch(behavior) {
+			case eat:
+				this.moveToFood();
+				break;
+			case idle:
+				this.doNothing();
+				break;
+			case mate:
+				this.doMating();
+				break;
+			case findMate:
+				this.moveToMate();
+				break;
+			case random:
+				this.moveRandom();
+				break;
+			default:
+				break;
+				
+			}
+		}
+	}
+	
+	/*
 	 Create baby
 	 */
 	private void createBaby(Creature mate) {
@@ -508,15 +542,16 @@ public class Creature extends Entity implements ActionListener {
 		int babyMaxEnergyDuringMating =  getBabyInt(this.maxEnergyDuringMating, mate.maxEnergyDuringMating, 1, babyMaxEnergy);
 		
 		int babyDaySight = getBabyInt(this.daySight, mate.daySight, 1);
-		int babyNightSight = getBabyInt(this.nightSight, mate.nightSight, 1);
 		
 		int babyMateCooldown = getBabyInt(this.mateCooldown, mate.mateCooldown, 1);
 		
 		Schedule babySchedule = this.schedule.getBabySchedule(mate.schedule);
+		Schedule babyBackupSchedule = this.backupSchedule.getBabySchedule(mate.backupSchedule);
+
 		
 		int[] babyPos = this.getBabyPos(new int[] {mate.posX, mate.posY});
 		if (babyPos.length == 2) {
-			Creature baby = new Creature(babyPos[0], babyPos[1], babyColor, babySlowness, babyEnergy, babyMaxEnergy, babyDaySight, babyNightSight, babyMaxEnergyDuringMating, babyMateCooldown, babySchedule, this, mate);
+			Creature baby = new Creature(babyPos[0], babyPos[1], babyColor, babySlowness, babyEnergy, babyMaxEnergy, babyDaySight, babyMaxEnergyDuringMating, babyMateCooldown, babySchedule, babyBackupSchedule, this, mate);
 			baby.setCurrentMateCooldown(babyMateCooldown);
 			globalData.getNewEntities().add(baby);
 			offspring.add(baby);
@@ -624,6 +659,7 @@ public class Creature extends Entity implements ActionListener {
 	 Eat food at EntityCollection index
 	 */
 	private void eatFood(EntityCollection foods, int i) {
+		// remove hunger
 		Food food = (Food) foods.getEntity(i);
 		if (food.isDead()) return;
 		food.assertEaten();
@@ -646,7 +682,7 @@ public class Creature extends Entity implements ActionListener {
 	 */
 	private void moveToMate() {
 		if (currentMateCooldown > 0) {
-			this.moveToFood();
+			this.doBackupBehavior();
 			return;
 		}
 		
@@ -661,11 +697,11 @@ public class Creature extends Entity implements ActionListener {
 				if (nextStep.length == 2) {
 					this.moveCreature(nextStep[0], nextStep[1]);
 				} else {
-					this.moveRandom();
+					this.doBackupBehavior();
 				}
 			}
 		} else {
-			this.moveRandom();
+			this.doBackupBehavior();
 		}
 	}
 	
@@ -684,11 +720,25 @@ public class Creature extends Entity implements ActionListener {
 			if (nextStep.length == 2) {
 				this.moveCreature(nextStep[0], nextStep[1]);
 			} else {
-				this.moveRandom();
+				this.doBackupBehavior();
 			}
 		} else {
-			this.moveRandom();
+			this.doBackupBehavior();
 		}
+	}
+	
+	/*
+	 Do backup behavior if for any reason main behavior cannot be accomplished
+	 */
+	private void doBackupBehavior() {
+		Behavior backupBehavior = backupSchedule.getCurrentBehavior();
+		if (triedBackupBehavior || backupBehavior == behavior) {
+			this.moveRandom();
+			return;
+		}
+			
+		triedBackupBehavior = true;
+		this.doBehavior(backupBehavior);
 	}
 	
 	private int[] findNextStep(int[] foodPos) {
@@ -770,7 +820,7 @@ public class Creature extends Entity implements ActionListener {
 			if (Math.abs(matePos[0] - x) + Math.abs(matePos[1] - y) > sight) return new Entity(0, 0);
 			Entity entity = globalData.getEntities().getCreature(matePos[0], matePos[1]);
 			if (entity instanceof Creature && !entity.equals(this)) {
-				if (((Creature)entity).behavior.equals(Behavior.findMate)) {
+				if (((Creature)entity).behavior.equals(Behavior.findMate) && ((Creature)entity).getCurrentMateCooldown() <= 0) {
 					return entity;
 				}
 				
@@ -814,6 +864,7 @@ public class Creature extends Entity implements ActionListener {
 	 Move creature to X and Y value
 	 */
 	private void moveCreature(int x, int y) {
+		// add fatigue
 		posX = x;
 		posY = y;
 		energy--;
