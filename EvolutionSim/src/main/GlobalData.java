@@ -68,7 +68,7 @@ public class GlobalData {
             timerPanel = new TimerPanel();
             
             paused = false;
-            unpausedFPS = 100;
+            unpausedFPS = TimerPanel.getInitialFPS();
             FPS = unpausedFPS;
             
             mutationRate = 0.1;
@@ -168,6 +168,16 @@ public class GlobalData {
 	 */
 	public void setFPS(int newFPS) {
 		FPS = newFPS;
+	}
+	
+	/*
+	 Set unpausedFPS
+	 */
+	public void setUnpausedFPS(int newFPS) {
+		unpausedFPS = newFPS;
+		if (!paused) {
+			setFPS(unpausedFPS);
+		}
 	}
 	
 	/*
