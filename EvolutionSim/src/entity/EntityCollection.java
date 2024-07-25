@@ -144,8 +144,9 @@ public class EntityCollection {
 	 Draw foods every frame
 	 */
 	public void draw(Graphics2D g2) {
-		for (Entity entity : entities) {
-			entity.draw(g2);
+		Object[] arr = entities.toArray();
+		for (Object entity : arr) {
+			((Entity)entity).draw(g2);
 		}
 	}
 	

@@ -73,7 +73,6 @@ public class GridPanel extends JPanel implements Runnable {
 		Graphics2D g2 = (Graphics2D) g;
 		globalData.getEntities().draw(g2);
 		//g2.dispose();
-		
 	}
 	
 }

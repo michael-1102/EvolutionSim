@@ -76,7 +76,7 @@ public class GlobalData {
             maxSight = 40;
             
             foodEnergy = 10;
-            maxFoodAge = 100;
+            maxFoodAge = 150;
             
             
             numFoodSpawn = 50;
@@ -99,9 +99,9 @@ public class GlobalData {
 			behaviors2[i] = Behavior.eat;
 		}
 		
-		entities.addCreature(new Creature(4, 4, new Color(255, 0, 23), 10, 100, 200, 20, 10, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
-		entities.addCreature(new Creature(10, 8, new Color(0, 100, 100), 10, 100, 200, 20, 10, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
-		entities.addCreature(new Creature(30, 4, new Color(200, 0, 255), 10, 100, 200, 20, 10, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
+		entities.addCreature(new Creature(4, 4, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
+		entities.addCreature(new Creature(10, 8, new Color(0, 100, 100), 10, 100, 200, 20, 15, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
+		entities.addCreature(new Creature(30, 4, new Color(200, 0, 255), 10, 100, 200, 20, 15, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
 
 	}
 	
