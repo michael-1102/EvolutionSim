@@ -19,6 +19,7 @@ import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 import main.TimerPanel;
 
@@ -174,85 +175,25 @@ public class CreatureViewer extends JDialog {
 		
 		middlePanel = new SubPanel();
 		middlePanel.setLayout(new GridBagLayout());
-		
+		c.gridwidth = 2;
 		c.gridx = 0;
-		c.gridy = 5;
-		maxEnergyLabel = new JLabel();
-		middlePanel.add(maxEnergyLabel, c);
-		maxEnergyLabel.setText("Maximum Energy:");
-		
-		c.gridx = 1;
-		c.gridy = 5;
-		maxEnergyLabelValue = new JLabel();
-		middlePanel.add(maxEnergyLabelValue, c);
-		maxEnergyLabelValue.setText(Integer.toString(creature.getMaxEnergy()));
-		
-		c.gridx = 0;
-		c.gridy = 6;
-		energyGivenDuringMatingLabel = new JLabel();
-		middlePanel.add(energyGivenDuringMatingLabel, c);
-		energyGivenDuringMatingLabel.setText("Energy Given To Each Offspring:");
-		
-		c.gridx = 1;
-		c.gridy = 6;
-		energyGivenDuringMatingLabelValue = new JLabel();
-		middlePanel.add(energyGivenDuringMatingLabelValue, c);
-		energyGivenDuringMatingLabelValue.setText(Integer.toString(creature.getMaxEnergyDuringMating()));
-		
-		c.gridx = 0;
-		c.gridy = 7;
-		matingCooldownLabel = new JLabel();
-		middlePanel.add(matingCooldownLabel, c);
-		matingCooldownLabel.setText("Mating Cooldown:");
-		
-		c.gridx = 1;
-		c.gridy = 7;
-		matingCooldownLabelValue = new JLabel();
-		middlePanel.add(matingCooldownLabelValue, c);
-		int mateCooldownInMins = TimerPanel.framesToMins(creature.getMateCooldown());
-		int mateCooldownHours = mateCooldownInMins / 60;
-		if (mateCooldownHours > 0) {
-			matingCooldownLabelValue.setText(mateCooldownHours + "h " + mateCooldownInMins % 60 + "m");
+		c.gridy = 0;
+		middlePanel.add(new JLabel("-", SwingConstants.CENTER), c);
+		c.gridwidth = 1;
 
-		} else {
-			matingCooldownLabelValue.setText(mateCooldownInMins + "m");
-		}
+		int[] col = new int[1];
+		col[0] = 1;
+		addAttribute(middlePanel, "Maximum Energy:", Integer.toString(creature.getMaxEnergy()), col, c);
+		addAttribute(middlePanel, "Energy Given To Each Offspring:", Integer.toString(creature.getMaxEnergyDuringMating()), col, c);
+		addAttribute(middlePanel, "Mating Cooldown:", getTimeStr(TimerPanel.framesToMins(creature.getMateCooldown())), col, c);
+		addAttribute(middlePanel, "Daytime Vision:", Integer.toString(creature.getDaySight()), col, c);
+		addAttribute(middlePanel, "Nighttime Vision:", Integer.toString(creature.getNightSight()), col, c);
+		addAttribute(middlePanel, "Speed:", df.format(creature.getSpeed()), col, c);
 		
+		c.gridwidth = 2;
 		c.gridx = 0;
-		c.gridy = 8;
-		daySightLabel = new JLabel();
-		middlePanel.add(daySightLabel, c);
-		daySightLabel.setText("Daytime Vision:");
-		
-		c.gridx = 1;
-		c.gridy = 8;
-		daySightLabelValue = new JLabel();
-		middlePanel.add(daySightLabelValue, c);
-		daySightLabelValue.setText(Integer.toString(creature.getDaySight()));
-		
-		c.gridx = 0;
-		c.gridy = 9;
-		nightSightLabel = new JLabel();
-		middlePanel.add(nightSightLabel, c);
-		nightSightLabel.setText("Nighttime Vision:");
-		
-		c.gridx = 1;
-		c.gridy = 9;
-		nightSightLabelValue = new JLabel();
-		middlePanel.add(nightSightLabelValue, c);
-		nightSightLabelValue.setText(Integer.toString(creature.getNightSight()));
-		
-		c.gridx = 0;
-		c.gridy = 10;
-		speedLabel = new JLabel();
-		middlePanel.add(speedLabel, c);
-		speedLabel.setText("Speed:");
-		
-		c.gridx = 1;
-		c.gridy = 10;
-		speedLabelValue = new JLabel();
-		middlePanel.add(speedLabelValue, c);
-		speedLabelValue.setText(df.format(creature.getSpeed()));
+		c.gridy = 7;
+		middlePanel.add(new JLabel("-", SwingConstants.CENTER), c);
 		
 		panel.add(middlePanel);
 		
@@ -267,7 +208,7 @@ public class CreatureViewer extends JDialog {
 		
 		offspringDropdown = new ViewerButton(); // to be made into a dropdown
 		bottomPanel.add(offspringDropdown);
-		offspringDropdown.setText("Offspring    V");
+		offspringDropdown.setText("View Offspring  V");
 		
 		parentLabel = new JLabel();
 		bottomPanel.add(parentLabel, c);
@@ -315,12 +256,29 @@ public class CreatureViewer extends JDialog {
 		this.pack();
 	}
 	
+	private void addAttribute(JPanel panel, String name, String valueStr, int[] col, GridBagConstraints c) {
+		c.gridx = 0;
+		c.gridy = col[0];
+		panel.add(new JLabel(name), c);
+		c.gridx = 1;
+		panel.add(new JLabel(valueStr), c);
+		col[0]++;
+	}
+	
+	private String getTimeStr(int mins) {
+		int hrs = mins / 60;
+		if (hrs > 0) {
+			return hrs + "h " + mins % 60 + "m";
+		} else {
+			return mins + "m";
+		}
+	}
 	public void update() {
 		positionLabel.setText("X: " + creature.posX + "   Y: " + creature.posY);
 		energyLabel.setText("Energy: " + creature.getEnergy());
 	}
 	
-	public static void changeFont(Component component, Font font) {
+	private static void changeFont(Component component, Font font) {
 	    component.setFont (font);
 	    if (component instanceof Container) {
 	        for (Component child : ((Container) component).getComponents()) {

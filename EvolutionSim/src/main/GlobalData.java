@@ -19,6 +19,7 @@ public class GlobalData {
 
 	private static EntityCollection entities;
 	private static TimerPanel timerPanel;
+	private static SettingsPane settingsPane;
 	
 	private static ArrayList<Entity> newEntities;
 	
@@ -36,14 +37,14 @@ public class GlobalData {
 	public final int screenWidth = tileSize * maxScreenCol;
 	public final int screenHeight = tileSize * maxScreenRow;
 	
-	//CONFIG VARIABLES
-
 	private static int FPS; // FPS
 	private static int unpausedFPS;
+
 	
+	//CONFIG VARIABLES
 	private static double mutationRate;
 	
-	private static int maxSight; // constant value of daySight + nightSight
+	private static int maxSight; // constant value of daySight + nightSight, rework this maybe
 	
 	private static int foodEnergy; // energy gained from eating 1 food
 	
@@ -66,10 +67,11 @@ public class GlobalData {
             entities = new EntityCollection();
             newEntities = new ArrayList<Entity>();
             timerPanel = new TimerPanel();
+            settingsPane = new SettingsPane();
             
-            paused = false;
+            paused = true;
+            FPS = 0;
             unpausedFPS = TimerPanel.getInitialFPS();
-            FPS = unpausedFPS;
             
             mutationRate = 0.1;
             
@@ -120,10 +122,17 @@ public class GlobalData {
 	}
 	
 	/*
-	 Return panel
+	 Return GridPanel
 	 */
 	public GridPanel getGridPanel() {
 		return gridPanel;
+	}
+	
+	/*
+	 Return SettingsPane
+	 */
+	public SettingsPane getSettingsPane() {
+		return settingsPane;
 	}
 	
 	/*

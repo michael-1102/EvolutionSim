@@ -103,7 +103,12 @@ public class TimerPanel extends JPanel implements ActionListener {
 			System.out.println(ex);
 		}
 		pauseButton = new JButton();
-		pauseButton.setIcon(new ImageIcon(pauseImg));
+		if (globalData.getPaused()) {
+			pauseButton.setIcon(new ImageIcon(pauseImg));
+		} else {
+			pauseButton.setIcon(new ImageIcon(playImg));
+
+		}
 		  
 		
 		pauseButton.setFocusable(false);
