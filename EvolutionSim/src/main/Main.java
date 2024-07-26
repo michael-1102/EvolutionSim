@@ -24,9 +24,12 @@ public class Main {
 		constraints.gridx = 0;
 		constraints.gridy = 1;
 		frame.add(gridPanel,constraints);
+		constraints.gridx = 1;
+		constraints.gridy = 0;
+		constraints.gridheight = 2;
+		frame.add(globalData.getSettingsPane(), constraints);
 		
 		frame.pack();
-		
 
 		frame.setLocationRelativeTo(null);
 		frame.setVisible(true);

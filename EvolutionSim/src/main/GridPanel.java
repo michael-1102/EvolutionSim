@@ -8,7 +8,7 @@ import javax.swing.JPanel;
 
 public class GridPanel extends JPanel implements Runnable {
     private GlobalData globalData;
-		
+	private volatile double delta;
 	Thread thread;
 	
 	/*
@@ -35,7 +35,7 @@ public class GridPanel extends JPanel implements Runnable {
 	 */
 	@Override
 	public void run() {
-		double delta = 0;
+		delta = 0;
 		long lastTime = System.nanoTime();
 		long currentTime;
 		
