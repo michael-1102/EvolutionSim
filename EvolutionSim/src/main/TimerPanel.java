@@ -50,9 +50,12 @@ public class TimerPanel extends JPanel implements ActionListener {
 
 	public TimerPanel() {
 		globalData = GlobalData.getInstance();
+		
+		int height = globalData.tileSize * 2;
+		
 		time = 0;
 		dayCount = 1;
-		this.setPreferredSize(new Dimension(globalData.screenWidth, globalData.tileSize*2));
+		this.setPreferredSize(new Dimension(globalData.screenWidth, height));
 		this.setBackground(Color.blue);
 		this.setBorder(BorderFactory.createLineBorder(Color.black));
 		this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
@@ -60,15 +63,17 @@ public class TimerPanel extends JPanel implements ActionListener {
 		timeLabel = new JLabel("00:00");
 		timeLabel.setHorizontalAlignment(JLabel.LEFT);
 		timeLabel.setVerticalAlignment(JLabel.CENTER);
-		timeLabel.setFont(new Font(Font.MONOSPACED, Font.BOLD, globalData.tileSize*2));
+		timeLabel.setFont(new Font(Font.MONOSPACED, Font.BOLD, height));
 		timeLabel.setForeground(Color.yellow);
+		timeLabel.setPreferredSize(new Dimension(150, height));
 		this.add(timeLabel);
 		
 		dayLabel = new JLabel("Day " + dayCount);
 		dayLabel.setHorizontalAlignment(JLabel.CENTER);
 		dayLabel.setVerticalAlignment(JLabel.CENTER);
-		dayLabel.setFont(new Font(Font.MONOSPACED, Font.BOLD, (int)(globalData.tileSize*1.5)));
+		dayLabel.setFont(new Font(Font.MONOSPACED, Font.BOLD, (int)(height * (3.0/4.0))));
 		dayLabel.setForeground(Color.yellow);
+		dayLabel.setPreferredSize(new Dimension(150, height));
 		this.add(dayLabel);
 		
 		fpsSlider = new JSlider(JSlider.HORIZONTAL, 0, fpsMax/fpsInterval, fpsInitial/fpsInterval);
@@ -87,18 +92,22 @@ public class TimerPanel extends JPanel implements ActionListener {
 
 		this.add(fpsSlider);
 		
+		JLabel empty = new JLabel();
+		empty.setPreferredSize(new Dimension(100, height));
+		this.add(empty);
+		
 		try {
 			pauseImg = ImageIO.read(getClass().getResource("/resources/pause.png"));
-			pauseImg = pauseImg.getScaledInstance(globalData.tileSize*2, globalData.tileSize*2,  java.awt.Image.SCALE_SMOOTH );
+			pauseImg = pauseImg.getScaledInstance(height, height,  java.awt.Image.SCALE_SMOOTH );
 			
 			playImg = ImageIO.read(getClass().getResource("/resources/play.png"));
-			playImg = playImg.getScaledInstance(globalData.tileSize*2, globalData.tileSize*2,  java.awt.Image.SCALE_SMOOTH );
+			playImg = playImg.getScaledInstance(height, height,  java.awt.Image.SCALE_SMOOTH );
 			
 			pauseHoverImg = ImageIO.read(getClass().getResource("/resources/pauseHover.png"));
-			pauseHoverImg = pauseHoverImg.getScaledInstance(globalData.tileSize*2, globalData.tileSize*2,  java.awt.Image.SCALE_SMOOTH );
+			pauseHoverImg = pauseHoverImg.getScaledInstance(height, height,  java.awt.Image.SCALE_SMOOTH );
 			
 			playHoverImg = ImageIO.read(getClass().getResource("/resources/playHover.png"));
-			playHoverImg = playHoverImg.getScaledInstance(globalData.tileSize*2, globalData.tileSize*2,  java.awt.Image.SCALE_SMOOTH );
+			playHoverImg = playHoverImg.getScaledInstance(height, height,  java.awt.Image.SCALE_SMOOTH );
 		} catch (Exception ex) {
 			System.out.println(ex);
 		}
@@ -116,7 +125,7 @@ public class TimerPanel extends JPanel implements ActionListener {
 		pauseButton.setContentAreaFilled(false);
 		pauseButton.setBorder(null);
 		pauseButton.addActionListener(this);
-		pauseButton.setPreferredSize(new Dimension(globalData.tileSize*2, globalData.tileSize*2));
+		pauseButton.setPreferredSize(new Dimension(height, height));
 		pauseButton.addMouseListener(new java.awt.event.MouseAdapter() {
 		    public void mouseEntered(java.awt.event.MouseEvent evt) {
 		    	if (globalData.getPaused()) {

@@ -72,20 +72,6 @@ public class CreatureViewer extends JDialog {
 	private JLabel generationLabel;
 	private JLabel positionLabel;
 	private JLabel energyLabel;
-	
-	private JLabel maxEnergyLabel;
-	private JLabel energyGivenDuringMatingLabel;
-	private JLabel matingCooldownLabel;
-	private JLabel daySightLabel;
-	private JLabel nightSightLabel;
-	private JLabel speedLabel;
-	
-	private JLabel maxEnergyLabelValue;
-	private JLabel energyGivenDuringMatingLabelValue;
-	private JLabel matingCooldownLabelValue;
-	private JLabel daySightLabelValue;
-	private JLabel nightSightLabelValue;
-	private JLabel speedLabelValue;
 
 	
 	private ViewerButton highlightButton;
@@ -98,6 +84,7 @@ public class CreatureViewer extends JDialog {
 	private JLabel parentLabel;
 	
 	private Creature creature;
+	private ScheduleViewer scheduleViewer;
 	private JPanel panel;
 	
 	private SubPanel topPanel;
@@ -106,6 +93,7 @@ public class CreatureViewer extends JDialog {
 	
 	public CreatureViewer(Creature creature) {
 		this.creature = creature;
+		this.scheduleViewer = new ScheduleViewer(creature, creature.getSchedule(), creature.getBackupSchedule());
 		this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		this.setResizable(true);
 		this.setTitle("Creature Viewer");
@@ -205,6 +193,12 @@ public class CreatureViewer extends JDialog {
 		scheduleButton = new ViewerButton();
 		bottomPanel.add(scheduleButton);
 		scheduleButton.setText("View Schedule");
+		scheduleButton.addActionListener((new ActionListener() {
+		    @Override
+		    public void actionPerformed(ActionEvent evt) {
+		    	scheduleViewer.setVisible(true);
+		    }
+		}));
 		
 		offspringDropdown = new ViewerButton(); // to be made into a dropdown
 		bottomPanel.add(offspringDropdown);

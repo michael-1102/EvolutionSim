@@ -898,4 +898,11 @@ public class Creature extends Entity implements ActionListener {
 	public boolean hasCollision() {
 		return true;
 	}
+
+	/*
+	 Return backupSchedule
+	 */
+	public Schedule getBackupSchedule() {
+		return backupSchedule;
+	}
 }
