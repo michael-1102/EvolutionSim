@@ -164,11 +164,10 @@ public class TimerPanel extends JPanel implements ActionListener {
 	
 	public void incrementTime() {
 		time++;
-		int mins =(int) (1.0*minsInDay/fullDayLength * time);
-		int hour = mins/minsInHour % hoursInDay;
 		if (time % fullDayLength == 0) dayCount++;
 		dayLabel.setText("Day " + dayCount);
-		timeLabel.setText(String.format("%02d", hour) + ":" + String.format("%02d", mins % minsInHour));
+		int mins =(int) (1.0*minsInDay/fullDayLength * time);
+		timeLabel.setText(getTimeString(mins));
 		int colorVal = (int) Math.abs(255.0/dayLength * ((time+dayLength) % fullDayLength - dayLength));
 		GridPanel gridPanel = globalData.getGridPanel();
 		gridPanel.setBackground(new Color(colorVal, colorVal, colorVal));
@@ -197,5 +196,16 @@ public class TimerPanel extends JPanel implements ActionListener {
 	 */
 	public static int framesToMins(int frames) {
 		return (int) (1.0 * frames / fullDayLength * minsInDay);
+	}
+	
+	private static String getTimeString(int totalMins) {
+		int hour = totalMins/minsInHour % hoursInDay;
+		return String.format("%02d", hour) + ":" + String.format("%02d", totalMins % minsInHour); 
+	}
+	
+	public static String getTimeFromIndex(int i, int size) {
+		int interval = minsInDay/size;
+		int totalMins = interval * i;
+		return getTimeString(totalMins);
 	}
 }

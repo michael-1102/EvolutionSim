@@ -14,6 +14,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
 
+import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -31,22 +32,19 @@ public class CreatureViewer extends JDialog {
 	private final static Color backgroundColor = Color.white;
 	
 	private class CreatureDrawing extends SubPanel {
-		
+		private Color color;
+		private int dim = 50; // length and width
 		public CreatureDrawing() {
 			super();
-			this.setPreferredSize(new Dimension(50, 50));
+			color = creature.getColor();
+			this.setPreferredSize(new Dimension(dim, dim));
 		}
 		
 		@Override
 		public void paintComponent(Graphics g) {
 			super.paintComponent(g);
-			g.setColor(creature.getColor());
-			g.fillRect(10, 10, 40, 40);
-		}
-
-		@Override
-		public Dimension getPreferredSize() {
-			return new Dimension(20, 20);
+			g.setColor(color);
+			g.fillRect(10, 10, dim-10, dim-10);
 		}
 	}
 	
@@ -270,13 +268,14 @@ public class CreatureViewer extends JDialog {
 	public void update() {
 		positionLabel.setText("X: " + creature.posX + "   Y: " + creature.posY);
 		energyLabel.setText("Energy: " + creature.getEnergy());
+		energyLabel.setPreferredSize(new Dimension(20, 20));
 	}
 	
-	private static void changeFont(Component component, Font font) {
+	public static void changeFont(Component component, Font font) {
 	    component.setFont (font);
 	    if (component instanceof Container) {
 	        for (Component child : ((Container) component).getComponents()) {
-	            changeFont (child, font);
+	            changeFont(child, font);
 	        }
 	    }
 	}

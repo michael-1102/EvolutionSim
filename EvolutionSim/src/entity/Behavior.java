@@ -3,11 +3,11 @@ package entity;
 import java.awt.Color;
 
 public enum Behavior {
-	eat(true, true, "Find Food", Color.yellow), // move to food
-	idle(true, false, "Rest", Color.black), // do not move
-	findMate(true, true, "Mate", Color.blue), // move to potential mate
+	idle(true, false, "Rest", new Color(47, 66, 143)), // do not move
+	eat(true, true, "Find Food", new Color(75, 201, 20)), // move to food
+	findMate(true, true, "Mate", Color.red), // move to potential mate
 	mate(false, false, null, null), // in the process of mating
-	random(true, true, "Move Randomly", Color.red); // move randomly
+	random(true, true, "Move Randomly", Color.orange); // move randomly
 	
 	private boolean schedulable; // whether or not this behavior can be placed in the schedule
 	private boolean moving; // whether or not this behavior requires moving
