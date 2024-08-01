@@ -75,6 +75,10 @@ public class Schedule {
 		return new Schedule(babySchedule);
 	}
 	
+	public Behavior[] getBehaviorArr() {
+		return schedule;
+	}
+	
 	private Behavior getRandomBehavior() {
 		int result = random.nextInt(schedulableBehaviors.size());
 		return schedulableBehaviors.get(result);
