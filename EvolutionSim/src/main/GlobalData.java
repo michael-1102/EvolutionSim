@@ -32,8 +32,8 @@ public class GlobalData {
 	//SCREEN SIZE VALUESS
 	private int tileSize = 20;
 	
-	private final int maxScreenCol = 48;
-	private final int maxScreenRow = 36;
+	private final int maxScreenCol = 48; // x
+	private final int maxScreenRow = 36; // y
 	
 	private int screenWidth = tileSize * maxScreenCol;
 	private int screenHeight = tileSize * maxScreenRow;
