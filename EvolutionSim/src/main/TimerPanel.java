@@ -3,6 +3,8 @@ package main;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -11,19 +13,18 @@ import javax.swing.JSlider;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.imageio.ImageIO;
-import javax.swing.BorderFactory;
-import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import java.awt.Image;
+import java.awt.Insets;
 
 public class TimerPanel extends JPanel implements ActionListener {
 	// use a better way to store these constants
 	private final static int hoursInDay = 24; // number of real life hours in a real life day
 	private final static int minsInHour = 60; // number of real life minutes in a real life hour
 	private final static int minsInDay = minsInHour * hoursInDay; // number of real life minutes in a real life day
-	private final static int dayLength = 4320; // amount of time in a day (and amount of time in a night)
+	private final static int dayLength = 4320; // amount of time (frames) in a day (and amount of time in a night)
 	private final static int fullDayLength = dayLength * 2;
 	
 	private final static int fpsMin = 1;
@@ -48,33 +49,34 @@ public class TimerPanel extends JPanel implements ActionListener {
 	private JSlider fpsSlider;
 	private GlobalData globalData;
 
+	private int height = 34;
+	
 	public TimerPanel() {
-		globalData = GlobalData.getInstance();
-		
-		int height = globalData.tileSize * 2;
-		
+		globalData = GlobalData.getInstance();		
 		time = 0;
 		dayCount = 1;
-		this.setPreferredSize(new Dimension(globalData.screenWidth, height));
 		this.setBackground(Color.blue);
-		this.setBorder(BorderFactory.createLineBorder(Color.black));
-		this.setLayout(new BoxLayout(this, BoxLayout.LINE_AXIS));
-		
+		//this.setBorder(BorderFactory.createLineBorder(Color.black));
+		this.setLayout(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
 		timeLabel = new JLabel("00:00");
 		timeLabel.setHorizontalAlignment(JLabel.LEFT);
 		timeLabel.setVerticalAlignment(JLabel.CENTER);
-		timeLabel.setFont(new Font(Font.MONOSPACED, Font.BOLD, height));
+		timeLabel.setFont(new Font(Font.MONOSPACED, Font.BOLD, (int)(height * (3.0/4.0))));
 		timeLabel.setForeground(Color.yellow);
-		timeLabel.setPreferredSize(new Dimension(150, height));
-		this.add(timeLabel);
+		c.gridx = 0;
+		c.gridy = 0;
+		this.add(timeLabel, c);
 		
 		dayLabel = new JLabel("Day " + dayCount);
 		dayLabel.setHorizontalAlignment(JLabel.CENTER);
 		dayLabel.setVerticalAlignment(JLabel.CENTER);
 		dayLabel.setFont(new Font(Font.MONOSPACED, Font.BOLD, (int)(height * (3.0/4.0))));
 		dayLabel.setForeground(Color.yellow);
-		dayLabel.setPreferredSize(new Dimension(150, height));
-		this.add(dayLabel);
+		c.gridx = 1;
+		c.weightx = 1;
+		this.add(dayLabel, c);
 		
 		fpsSlider = new JSlider(JSlider.HORIZONTAL, 0, fpsMax/fpsInterval, fpsInitial/fpsInterval);
 		fpsSlider.setMinorTickSpacing(1);
@@ -90,12 +92,9 @@ public class TimerPanel extends JPanel implements ActionListener {
 		    }
 		}));
 
-		this.add(fpsSlider);
-		
-		JLabel empty = new JLabel();
-		empty.setPreferredSize(new Dimension(100, height));
-		this.add(empty);
-		
+		c.gridx = 2;
+		this.add(fpsSlider, c);
+
 		try {
 			pauseImg = ImageIO.read(getClass().getResource("/resources/pause.png"));
 			pauseImg = pauseImg.getScaledInstance(height, height,  java.awt.Image.SCALE_SMOOTH );
@@ -111,8 +110,13 @@ public class TimerPanel extends JPanel implements ActionListener {
 		} catch (Exception ex) {
 			System.out.println(ex);
 		}
-		pauseButton = new JButton();
-		if (globalData.getPaused()) {
+		pauseButton = new JButton() {
+			@Override
+			public Dimension getPreferredSize() {
+			    return new Dimension(height, height);
+			}
+		};
+		if (!globalData.getPaused()) {
 			pauseButton.setIcon(new ImageIcon(pauseImg));
 		} else {
 			pauseButton.setIcon(new ImageIcon(playImg));
@@ -125,7 +129,6 @@ public class TimerPanel extends JPanel implements ActionListener {
 		pauseButton.setContentAreaFilled(false);
 		pauseButton.setBorder(null);
 		pauseButton.addActionListener(this);
-		pauseButton.setPreferredSize(new Dimension(height, height));
 		pauseButton.addMouseListener(new java.awt.event.MouseAdapter() {
 		    public void mouseEntered(java.awt.event.MouseEvent evt) {
 		    	if (globalData.getPaused()) {
@@ -145,7 +148,15 @@ public class TimerPanel extends JPanel implements ActionListener {
 		    	}
 		    }
 		});
-		this.add(pauseButton);
+		c.gridx = 3;
+		c.weightx = 0;
+		c.insets = new Insets(0, 100, 0, 0); // left padding
+		this.add(pauseButton, c);
+	}
+	
+	@Override
+	public int getHeight() {
+		return height;
 	}
 	
 	public static int getInitialFPS() {
@@ -196,6 +207,11 @@ public class TimerPanel extends JPanel implements ActionListener {
 	 */
 	public static int framesToMins(int frames) {
 		return (int) (1.0 * frames / fullDayLength * minsInDay);
+	}
+	
+	
+	public static int minsToFrames(int mins) {
+		return (int) (1.0 * mins * fullDayLength / minsInDay);
 	}
 	
 	private static String getTimeString(int totalMins) {

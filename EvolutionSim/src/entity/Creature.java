@@ -111,10 +111,10 @@ public class Creature extends Entity implements ActionListener {
 		this.backupSchedule = backupSchedule;
 		this.maxEnergyDuringMating = maxEnergyDuringMating;
 		this.mateCooldown = mateCooldown;
-		maxSteps = globalData.maxScreenCol * globalData.maxScreenRow;
+		maxSteps = globalData.getMaxScreenCol() * globalData.getMaxScreenRow();
 		
 		
-		nodes = new Node[globalData.maxScreenCol][globalData.maxScreenRow];
+		nodes = new Node[globalData.getMaxScreenCol()][globalData.getMaxScreenRow()];
 		
 		doneMating = false;
 		steps = 0;
@@ -127,7 +127,8 @@ public class Creature extends Entity implements ActionListener {
 		viewer = new CreatureViewer(this);
 		
 		button = new JButton();
-		button.setBounds(posX*globalData.tileSize, posY*globalData.tileSize, globalData.tileSize, globalData.tileSize);
+		int tileSize = globalData.getTileSize();
+		button.setBounds(posX*tileSize, posY*tileSize, tileSize, tileSize);
 		button.setFocusable(false);
 		button.setContentAreaFilled(false);
 		button.addActionListener(this);
@@ -248,9 +249,10 @@ public class Creature extends Entity implements ActionListener {
 	 */
 	@Override
 	public void draw(Graphics2D g2) {
-		button.setBounds(posX*globalData.tileSize, posY*globalData.tileSize, globalData.tileSize, globalData.tileSize);
+		int tileSize = globalData.getTileSize();
+		button.setBounds(posX*tileSize, posY*tileSize, tileSize, tileSize);
 		g2.setColor(color);
-		g2.fillRect(posX*globalData.tileSize, posY*globalData.tileSize, globalData.tileSize, globalData.tileSize);
+		g2.fillRect(posX*tileSize, posY*tileSize, tileSize, tileSize);
 	}
 	
 	/*
@@ -259,10 +261,10 @@ public class Creature extends Entity implements ActionListener {
 	private void initializeNodes() {
 		int col = 0;
 		int row = 0;
-		while(col < globalData.maxScreenCol && row < globalData.maxScreenRow) {
+		while(col < globalData.getMaxScreenCol() && row < globalData.getMaxScreenRow()) {
 				nodes[col][row] = new Node(col, row);
 				col++;
-				if (col == globalData.maxScreenCol) {
+				if (col == globalData.getMaxScreenCol()) {
 					col = 0;
 					row++;
 				}
@@ -300,13 +302,13 @@ public class Creature extends Entity implements ActionListener {
 	private void setCostOnNodes() {
 		int col = 0;
 		int row = 0;
-		while(col < globalData.maxScreenCol && row < globalData.maxScreenRow) {
+		while(col < globalData.getMaxScreenCol() && row < globalData.getMaxScreenRow()) {
 			getCost(nodes[col][row]);	
 			if (!globalData.getEntities().posNotSolid(col, row)) {
 				nodes[col][row].setAsSolid();
 			}
 			col++;
-			if (col == globalData.maxScreenCol) {
+			if (col == globalData.getMaxScreenCol()) {
 				col = 0;
 				row++;
 			}
@@ -345,10 +347,10 @@ public class Creature extends Entity implements ActionListener {
 			if (col > 0) {
 				openNode(nodes[col-1][row]); // left
 			}
-			if (row < globalData.maxScreenRow - 1) {
+			if (row < globalData.getMaxScreenRow() - 1) {
 				openNode(nodes[col][row+1]); // down
 			}
-			if (col < globalData.maxScreenCol - 1) {
+			if (col < globalData.getMaxScreenCol() - 1) {
 				openNode(nodes[col+1][row]); // right
 			}
 			
@@ -605,17 +607,17 @@ public class Creature extends Entity implements ActionListener {
 		Collections.shuffle(dirOptions);
 		int[] babyPos = new int[2];
 		for (int i = 0; i < 4; i++) { // check positions next to one parent
-				babyPos[0] = posX+dirX[dirOptions.get(i)];
-				babyPos[1] = posY+dirY[dirOptions.get(i)];
-				if (babyPos[0] < globalData.maxScreenRow - 1 && babyPos[0] > 0 && babyPos[1] < globalData.maxScreenCol - 1 && babyPos[1] > 0)
-					if (globalData.getEntities().posNotSolid(babyPos[0], babyPos[1])) {
-						return babyPos;
-					}
+			babyPos[0] = posX+dirX[dirOptions.get(i)];
+			babyPos[1] = posY+dirY[dirOptions.get(i)];
+			if (babyPos[0] < globalData.getMaxScreenCol() - 1 && babyPos[0] > 0 && babyPos[1] < globalData.getMaxScreenRow() - 1 && babyPos[1] > 0)
+				if (globalData.getEntities().posNotSolid(babyPos[0], babyPos[1])) {
+					return babyPos;
+				}
 		}
 		for (int i = 0; i < 4; i++) { // check positions next to other parent
 			babyPos[0] = matePos[0]+dirX[dirOptions.get(i)];
 			babyPos[1] = matePos[1]+dirY[dirOptions.get(i)];
-			if (babyPos[0] < globalData.maxScreenRow - 1 && babyPos[0] > 0 && babyPos[1] < globalData.maxScreenCol - 1 && babyPos[1] > 0)
+			if (babyPos[0] < globalData.getMaxScreenCol() - 1 && babyPos[0] > 0 && babyPos[1] < globalData.getMaxScreenRow() - 1 && babyPos[1] > 0)
 				if (globalData.getEntities().posNotSolid(babyPos[0], babyPos[1])) {
 					return babyPos;
 				}
@@ -686,7 +688,7 @@ public class Creature extends Entity implements ActionListener {
 			return;
 		}
 		
-		Entity mate = mateBFS(new boolean[globalData.maxScreenCol][globalData.maxScreenRow], posX, posY);
+		Entity mate = mateBFS(new boolean[globalData.getMaxScreenCol()][globalData.getMaxScreenRow()], posX, posY);
 		if (mate instanceof Creature) {
 			int[] matePos = {mate.posX, mate.posY};
 			if (this.getDistance(matePos) == 1) {
@@ -713,7 +715,7 @@ public class Creature extends Entity implements ActionListener {
 	 Move creature towards food
 	 */
 	private void moveToFood() {
-		int[] foodPos = foodBFS(new boolean[globalData.maxScreenCol][globalData.maxScreenRow], posX, posY);
+		int[] foodPos = foodBFS(new boolean[globalData.getMaxScreenCol()][globalData.getMaxScreenRow()], posX, posY);
 		if (foodPos.length == 2) {
 			
 			int[] nextStep = findNextStep(foodPos);
@@ -757,7 +759,7 @@ public class Creature extends Entity implements ActionListener {
 	 returns true if location is not visited and within the screen
 	 */
 	private boolean isValid(boolean visited[][], int x, int y) {
-		if (x < 0 || y < 0 || x >= globalData.maxScreenCol || y>= globalData.maxScreenRow) {
+		if (x < 0 || y < 0 || x >= globalData.getMaxScreenCol() || y>= globalData.getMaxScreenRow()) {
 			return false;
 		}
 		if (visited[x][y]) {
@@ -770,7 +772,7 @@ public class Creature extends Entity implements ActionListener {
 	 returns true if location is within the screen
 	 */
 	private boolean isValid(int x, int y) {
-		return !(x < 0 || y < 0 || x >= globalData.maxScreenCol || y>= globalData.maxScreenRow);	
+		return !(x < 0 || y < 0 || x >= globalData.getMaxScreenCol() || y>= globalData.getMaxScreenRow());	
 	}
 	
 	/*

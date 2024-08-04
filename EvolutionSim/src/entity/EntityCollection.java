@@ -59,7 +59,7 @@ public class EntityCollection {
 	 Update entities every frame
 	 */
 	public void update() {
-		Collections.shuffle(entities) ;
+		Collections.shuffle(entities);
 		for (Iterator<Entity> iterator = entities.iterator(); iterator.hasNext();) {
 		    Entity entity = iterator.next();
 		    entity.update();
@@ -75,16 +75,19 @@ public class EntityCollection {
 		globalData.getNewEntities().clear();
 		
 		// respawn food
-		if (globalData.getTimerPanel().getTime() % globalData.getFoodRespawnTime() == 0) {
+		if (globalData.getTimerPanel().getTime() % globalData.getFoodRespawnTime() == 0 && globalData.doesRandomFoodSpawn()) {
 			int newX, newY;
 			for (int i = 0; i < globalData.getNumFoodSpawn(); i++) {
 				if (entities.size() >= globalData.getMaxNumFood()) {
 					return;
 				}
-				newX = (int)(Math.random() * globalData.maxScreenCol); 
-				newY = (int)(Math.random() * globalData.maxScreenRow);
+				int maxScreenCol = globalData.getMaxScreenCol();
+				int maxScreenRow = globalData.getMaxScreenRow();
+
+				newX = (int)(Math.random() * maxScreenCol); 
+				newY = (int)(Math.random() * maxScreenRow);
 				if (!this.posEmpty(newX, newY)) {
-					int[] newPos = emptyBFS(new boolean[globalData.maxScreenCol][globalData.maxScreenRow], newX, newY);
+					int[] newPos = emptyBFS(new boolean[maxScreenCol][maxScreenRow], newX, newY);
 					if (newPos.length == 2) {
 						newX = newPos[0];
 						newY = newPos[1];
@@ -98,7 +101,7 @@ public class EntityCollection {
 	}
 	
 	private boolean isValid(boolean visited[][], int x, int y) {
-		if (x < 0 || y < 0 || x >= globalData.maxScreenCol || y>= globalData.maxScreenRow) {
+		if (x < 0 || y < 0 || x >= globalData.getMaxScreenCol() || y>= globalData.getMaxScreenRow()) {
 			return false;
 		}
 		if (visited[x][y]) {

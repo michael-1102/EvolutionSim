@@ -32,8 +32,8 @@ public class Food extends Entity {
 	@Override
 	public void draw(Graphics2D g2) {
 		g2.setColor(new Color((int)(255*(0.5*age/globalData.getMaxFoodAge())), (int)(255*(1-1.0*age/globalData.getMaxFoodAge())), 0));
-		
-		g2.fillRect(posX*globalData.tileSize+globalData.tileSize/4, posY*globalData.tileSize+globalData.tileSize/4, globalData.tileSize/2, globalData.tileSize/2);
+		int tileSize = globalData.getTileSize();
+		g2.fillRect(posX*tileSize+tileSize/4, posY*tileSize+tileSize/4, tileSize/2, tileSize/2);
 	}
 
 	/*
