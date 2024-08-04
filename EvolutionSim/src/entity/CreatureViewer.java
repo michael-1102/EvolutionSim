@@ -1,8 +1,6 @@
 package entity;
 
 import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
@@ -14,7 +12,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.DecimalFormat;
 
-import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -22,6 +19,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 
+import main.GlobalData;
 import main.TimerPanel;
 
 public class CreatureViewer extends JDialog {
@@ -33,18 +31,22 @@ public class CreatureViewer extends JDialog {
 	
 	private class CreatureDrawing extends SubPanel {
 		private Color color;
-		private int dim = 50; // length and width
+		private int side = 50; // width and height
 		public CreatureDrawing() {
 			super();
 			color = creature.getColor();
-			this.setPreferredSize(new Dimension(dim, dim));
+		}
+		
+		@Override
+		public Dimension getPreferredSize() {
+		    return new Dimension(side, side);
 		}
 		
 		@Override
 		public void paintComponent(Graphics g) {
 			super.paintComponent(g);
 			g.setColor(color);
-			g.fillRect(10, 10, dim-10, dim-10);
+			g.fillRect(10, 10, side-10, side-10);
 		}
 	}
 	
@@ -95,8 +97,12 @@ public class CreatureViewer extends JDialog {
 		this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		this.setResizable(true);
 		this.setTitle("Creature Viewer");
-		panel = new JPanel();
-		panel.setPreferredSize(new Dimension(viewerWidth, viewerHeight));
+		panel = new JPanel() {
+			@Override
+			public Dimension getPreferredSize() {
+			    return new Dimension(viewerWidth, viewerHeight);
+			}
+		};
 		panel.setBackground(backgroundColor);
 		panel.setDoubleBuffered(true);
 		panel.setLayout(new BoxLayout(panel, BoxLayout.PAGE_AXIS));
@@ -136,8 +142,12 @@ public class CreatureViewer extends JDialog {
 		
 		c.gridx = 2;
 		c.gridy = 2;
-		highlightButton = new ViewerButton();
-		highlightButton.setPreferredSize(new Dimension(80, 30));
+		highlightButton = new ViewerButton() {
+			@Override
+			public Dimension getPreferredSize() {
+			    return new Dimension(80, 30);
+			}
+		};
 		highlightButton.setText("Highlight");
 		highlightButton.addActionListener((new ActionListener() {
 		    @Override
@@ -154,7 +164,12 @@ public class CreatureViewer extends JDialog {
 		c.insets = new Insets(0, 10, 0, 0);
 		c.gridx = 0;
 		c.gridy = 3;
-		energyLabel = new JLabel();
+		energyLabel = new JLabel() {
+			@Override
+			public Dimension getPreferredSize() {
+			    return new Dimension(20, 20);
+			}
+		};
 		topPanel.add(energyLabel, c);
 		
 		panel.add(topPanel);
@@ -243,7 +258,7 @@ public class CreatureViewer extends JDialog {
 		
 		panel.add(bottomPanel);
 		
-		CreatureViewer.changeFont(panel, new Font(Font.MONOSPACED, Font.PLAIN, 12));
+		GlobalData.changeFont(panel, new Font(Font.MONOSPACED, Font.PLAIN, 12));
 		this.add(panel);
 		this.pack();
 	}
@@ -268,18 +283,6 @@ public class CreatureViewer extends JDialog {
 	public void update() {
 		positionLabel.setText("X: " + creature.posX + "   Y: " + creature.posY);
 		energyLabel.setText("Energy: " + creature.getEnergy());
-		energyLabel.setPreferredSize(new Dimension(20, 20));
 	}
-	
-	public static void changeFont(Component component, Font font) {
-	    component.setFont (font);
-	    if (component instanceof Container) {
-	        for (Component child : ((Container) component).getComponents()) {
-	            changeFont(child, font);
-	        }
-	    }
-	}
-
-	
 	
 }

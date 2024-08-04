@@ -2,6 +2,10 @@ package main;
 
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Container;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.util.ArrayList;
 
 import javax.swing.JFrame;
@@ -25,17 +29,14 @@ public class GlobalData {
 	
 	private static boolean paused;
 	
-	//SCREEN SIZE VALUES
-	public final int originalTileSize = 16;
-	public final int scale = 1;
+	//SCREEN SIZE VALUESS
+	private int tileSize = 20;
 	
-	public final int tileSize = originalTileSize * scale;
+	private final int maxScreenCol = 48;
+	private final int maxScreenRow = 36;
 	
-	public final int maxScreenCol = 48;
-	public final int maxScreenRow = 36;
-	
-	public final int screenWidth = tileSize * maxScreenCol;
-	public final int screenHeight = tileSize * maxScreenRow;
+	private int screenWidth = tileSize * maxScreenCol;
+	private int screenHeight = tileSize * maxScreenRow;
 	
 	private static int FPS; // FPS
 	private static int unpausedFPS;
@@ -46,6 +47,7 @@ public class GlobalData {
 	
 	private static int maxSight; // constant value of daySight + nightSight, rework this maybe
 	
+	private static boolean randomFoodSpawn;
 	private static int foodEnergy; // energy gained from eating 1 food
 	
 	private static int maxFoodAge; // food disappears once it reaches this age
@@ -62,12 +64,6 @@ public class GlobalData {
 	public static synchronized GlobalData getInstance() {
         if (globalData == null) {
             globalData = new GlobalData();
-        	gridPanel = new GridPanel();
-        	frame = new JFrame();
-            entities = new EntityCollection();
-            newEntities = new ArrayList<Entity>();
-            timerPanel = new TimerPanel();
-            settingsPane = new SettingsPane();
             
             paused = true;
             FPS = 0;
@@ -77,18 +73,33 @@ public class GlobalData {
             
             maxSight = 40;
             
+            randomFoodSpawn = true;
             foodEnergy = 10;
-            maxFoodAge = 150;
+            maxFoodAge = TimerPanel.minsToFrames(25);
             
             
-            numFoodSpawn = 50;
-            foodRespawnTime = 50;
-            maxNumFood = 40;
+            numFoodSpawn = 20;
+            foodRespawnTime = TimerPanel.minsToFrames(20);
+            maxNumFood = 100;
             
-            
+        	gridPanel = new GridPanel();
+        	frame = new JFrame();
+            entities = new EntityCollection();
+            newEntities = new ArrayList<Entity>();
+            timerPanel = new TimerPanel();
+            settingsPane = new SettingsPane();
         }
         return globalData;
     }
+	
+	public void setTileSize() {
+		Dimension dim = frame.getContentPane().getSize();
+		int timerHeight = timerPanel.getHeight();
+		tileSize = Math.min(dim.width/(maxScreenCol+8), (dim.height - timerHeight)/(maxScreenRow));
+		screenWidth = tileSize * maxScreenCol;
+		screenHeight = tileSize * maxScreenRow;
+		gridPanel.revalidate();
+	}
 	
 	/*
 	 Set up entities before start
@@ -96,16 +107,67 @@ public class GlobalData {
 	public void setUpSim() {
 		Behavior[] behaviors1 = new Behavior[96];
 		Behavior[] behaviors2 = new Behavior[96];
+		Behavior[] behaviors3 = new Behavior[96];
 		for (int i = 0; i < 96; i++) {
 			behaviors1[i] = Behavior.findMate;
 			behaviors2[i] = Behavior.eat;
+			behaviors3[i] = Behavior.idle;;
 		}
+		entities.addCreature(new Creature(0, 0, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors3), new Schedule(behaviors3), null, null));
+		entities.addCreature(new Creature(47, 0, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors3), new Schedule(behaviors3), null, null));
+		entities.addCreature(new Creature(47, 35, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors3), new Schedule(behaviors3), null, null));
+		entities.addCreature(new Creature(0, 35, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors3), new Schedule(behaviors3), null, null));
+
 		
 		entities.addCreature(new Creature(4, 4, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
 		entities.addCreature(new Creature(10, 8, new Color(0, 100, 100), 10, 100, 200, 20, 15, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
 		entities.addCreature(new Creature(30, 4, new Color(200, 0, 255), 10, 100, 200, 20, 15, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
 
 	}
+	
+	/*
+	 Return tileSize
+	 */
+	public int getTileSize() {
+		return tileSize;
+	}
+	
+	/*
+	 Return randomFoodSpawn
+	 */
+	public boolean doesRandomFoodSpawn() {
+		return randomFoodSpawn;
+	}
+	
+	
+	/*
+	 Return maxScreenRow
+	 */
+	public int getMaxScreenRow() {
+		return maxScreenRow;
+	}
+	
+	/*
+	 Return maxScreenCol
+	 */
+	public int getMaxScreenCol() {
+		return maxScreenCol;
+	}
+	
+	/*
+	 Return screenHeight
+	 */
+	public int getScreenHeight() {
+		return screenHeight;
+	}
+	
+	/*
+	 Return screenWidth
+	 */
+	public int getScreenWidth() {
+		return screenWidth;
+	}
+	
 	
 	/*
 	 Return maxSight
@@ -244,5 +306,62 @@ public class GlobalData {
 		return mutationRate;
 	}
 	
+	/*
+	 Set mutationRate
+	 */
+	public void setMutationRate(double newMutationRate) {
+		mutationRate = newMutationRate;
+	}
 	
+	/*
+	 Set randomFoodSpawn
+	 */
+	public void setRandomFoodSpawn(boolean newRandomFoodSpawn) {
+		randomFoodSpawn = newRandomFoodSpawn;
+	}
+	
+	
+	public static void changeFont(Component component, Font font) {
+	    component.setFont (font);
+	    if (component instanceof Container) {
+	        for (Component child : ((Container) component).getComponents()) {
+	            changeFont(child, font);
+	        }
+	    }
+	}
+
+	/*
+	 Set foodEnergy
+	 */
+	public void setFoodEnergy(int newFoodEnergy) {
+		foodEnergy = newFoodEnergy;
+	}
+	
+	/*
+	 Set maxFoodAge
+	 */
+	public void setMaxFoodAge(int newMaxFoodAge) {
+		maxFoodAge = newMaxFoodAge;
+	}
+	
+	/*
+	 Set foodRespawnTime
+	 */
+	public void setFoodRespawnTime(int newFoodRespawnTime) {
+		foodRespawnTime = newFoodRespawnTime;
+	}
+	
+	/*
+	 Set numFoodSpawn
+	 */
+	public void setNumFoodSpawn(int newNumFoodSpawn) {
+		numFoodSpawn = newNumFoodSpawn;
+	}
+	
+	/*
+	 Set maxNumFood
+	 */
+	public void setMaxNumFood(int newMaxNumFood) {
+		maxNumFood = newMaxNumFood;
+	}
 }

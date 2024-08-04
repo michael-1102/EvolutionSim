@@ -7,27 +7,26 @@ import java.awt.Graphics2D;
 import javax.swing.JPanel;
 
 public class GridPanel extends JPanel implements Runnable {
-    private GlobalData globalData;
-	private volatile double delta;
-	Thread thread;
 	
+    private GlobalData globalData;
+	private volatile double delta;	
 	/*
 	 Panel constructor
 	 */
 	public GridPanel() {
 		globalData = GlobalData.getInstance();
-		this.setPreferredSize(new Dimension(globalData.screenWidth, globalData.screenHeight));
 		this.setBackground(Color.black);
 		this.setDoubleBuffered(true);
 	}
-
 	
-	/*
-	 Starts thread
-	 */
-	public void startThread() {
-		thread = new Thread(this);
-		thread.start();
+	@Override
+	public Dimension getPreferredSize() {
+	    return new Dimension(globalData.getScreenWidth(), globalData.getScreenHeight());
+	}
+	
+	@Override
+	public Dimension getMinimumSize() {
+	    return new Dimension(globalData.getScreenWidth(), globalData.getScreenHeight());
 	}
 	
 	/*
@@ -39,7 +38,7 @@ public class GridPanel extends JPanel implements Runnable {
 		long lastTime = System.nanoTime();
 		long currentTime;
 		
-		while (thread != null) {
+		while (true) {
 			currentTime = System.nanoTime();
 			delta += (currentTime - lastTime) / (1000000000.0/globalData.getFPS());
 			lastTime = currentTime;
@@ -47,13 +46,11 @@ public class GridPanel extends JPanel implements Runnable {
 			if (delta >= 1) {
 				update();
 				repaint();
-				delta--;
+				delta = 0;
 			}
 			
 		}
 	}
-	
-	
 	
 	/*
 	 Update information every frame
