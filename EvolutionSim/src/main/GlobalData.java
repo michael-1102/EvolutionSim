@@ -15,6 +15,7 @@ import entity.Creature;
 import entity.Entity;
 import entity.EntityCollection;
 import entity.Schedule;
+import entity.Wall;
 
 public class GlobalData {
     private static GlobalData globalData = new GlobalData();
@@ -30,11 +31,11 @@ public class GlobalData {
 	
 	private boolean paused;
 	
-	//SCREEN SIZE VALUESS
+	//SCREEN SIZE VALUES
 	private int tileSize = 20;
 	
-	private final int maxScreenCol = 48; // x
-	private final int maxScreenRow = 36; // y
+	private final int maxScreenCol = 72; // x
+	private final int maxScreenRow = 54; // y
 	
 	private int screenWidth = tileSize * maxScreenCol;
 	private int screenHeight = tileSize * maxScreenRow;
@@ -81,7 +82,7 @@ public class GlobalData {
 	}
 	
     /*
-    Get instance of GlobalData, create new GlobalData if null
+     Get instance of GlobalData
      */
 	public static synchronized GlobalData getInstance() {
         return globalData;
@@ -102,23 +103,20 @@ public class GlobalData {
 	public void setUpSim() {
 		Behavior[] behaviors1 = new Behavior[96];
 		Behavior[] behaviors2 = new Behavior[96];
-		Behavior[] behaviors3 = new Behavior[96];
 		for (int i = 0; i < 96; i++) {
 			behaviors1[i] = Behavior.findMate;
 			behaviors2[i] = Behavior.eat;
-			behaviors3[i] = Behavior.idle;;
 		}
         entities = new EntityCollection();
-		entities.addEntity(new Creature(0, 0, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors3), new Schedule(behaviors3), null, null));
-		entities.addEntity(new Creature(47, 0, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors3), new Schedule(behaviors3), null, null));
-		entities.addEntity(new Creature(47, 35, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors3), new Schedule(behaviors3), null, null));
-		entities.addEntity(new Creature(0, 35, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors3), new Schedule(behaviors3), null, null));
-
 		
 		entities.addEntity(new Creature(4, 4, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
 		entities.addEntity(new Creature(10, 8, new Color(0, 100, 100), 10, 100, 200, 20, 15, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
 		entities.addEntity(new Creature(30, 4, new Color(200, 0, 255), 10, 100, 200, 20, 15, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
 
+		entities.addEntity(new Wall(0,0));
+		entities.addEntity(new Wall(maxScreenCol-1,0));
+		entities.addEntity(new Wall(maxScreenCol-1,maxScreenRow-1));
+		entities.addEntity(new Wall(0,maxScreenRow-1));
 	}
 	
 	/*
