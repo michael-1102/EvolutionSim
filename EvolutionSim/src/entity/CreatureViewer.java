@@ -213,7 +213,7 @@ public class CreatureViewer extends JDialog {
 		    }
 		}));
 		
-		offspringDropdown = new ViewerButton(); // to be made into a dropdown
+		offspringDropdown = new ViewerButton(); //TODO: make into a dropdown
 		bottomPanel.add(offspringDropdown);
 		offspringDropdown.setText("View Offspring  V");
 		

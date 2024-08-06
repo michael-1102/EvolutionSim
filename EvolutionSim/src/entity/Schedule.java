@@ -7,7 +7,7 @@ import main.GlobalData;
 
 public class Schedule {
 	
-	GlobalData globalData;
+	private GlobalData globalData;
 	
 	private Behavior[] schedule;
 	private ArrayList<Behavior> schedulableBehaviors;

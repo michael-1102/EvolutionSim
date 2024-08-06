@@ -17,17 +17,18 @@ import entity.EntityCollection;
 import entity.Schedule;
 
 public class GlobalData {
-    private static GlobalData globalData;
-    private static GridPanel gridPanel;
-    private static JFrame frame;
+    private static GlobalData globalData = new GlobalData();
 
-	private static EntityCollection entities;
-	private static TimerPanel timerPanel;
-	private static SettingsPane settingsPane;
+    private GridPanel gridPanel;
+    private JFrame frame;
+
+	private EntityCollection entities;
+	private TimerPanel timerPanel;
+	private SettingsPane settingsPane;
 	
-	private static ArrayList<Entity> newEntities;
+	private ArrayList<Entity> newEntities;
 	
-	private static boolean paused;
+	private boolean paused;
 	
 	//SCREEN SIZE VALUESS
 	private int tileSize = 20;
@@ -38,57 +39,51 @@ public class GlobalData {
 	private int screenWidth = tileSize * maxScreenCol;
 	private int screenHeight = tileSize * maxScreenRow;
 	
-	private static int FPS; // FPS
-	private static int unpausedFPS;
+	private int FPS; // FPS
+	private int unpausedFPS;
 
 	
 	//CONFIG VARIABLES
-	private static double mutationRate;
+	private double mutationRate;
 	
-	private static int maxSight; // constant value of daySight + nightSight, rework this maybe
+	private int maxSight; // constant value of daySight + nightSight, rework this maybe
 	
-	private static boolean randomFoodSpawn;
-	private static int foodEnergy; // energy gained from eating 1 food
+	private boolean randomFoodSpawn;
+	private int foodEnergy; // energy gained from eating 1 food
 	
-	private static int maxFoodAge; // food disappears once it reaches this age
+	private int maxFoodAge; // food disappears once it reaches this age
 	
-	private static int numFoodSpawn; // number of food that spawns at a time
-	private static int foodRespawnTime; // amount of time before more food spawns
-	private static int maxNumFood; // maximum number of food that can exist
+	private int numFoodSpawn; // number of food that spawns at a time
+	private int foodRespawnTime; // amount of time before more food spawns
+	private int maxNumFood; // maximum number of food that can exist
 	
 	//END OF CONFIG VARIABLES
     	
+	private GlobalData() {
+		paused = true;
+        FPS = 0;
+        unpausedFPS = TimerPanel.getInitialFPS();
+        
+        mutationRate = 0.1;
+        
+        maxSight = 40;
+        
+        randomFoodSpawn = true;
+        foodEnergy = 10;
+        maxFoodAge = TimerPanel.minsToFrames(25);
+        
+        
+        numFoodSpawn = 20;
+        foodRespawnTime = TimerPanel.minsToFrames(20);
+        maxNumFood = 100;
+        
+        newEntities = new ArrayList<Entity>();
+	}
+	
     /*
     Get instance of GlobalData, create new GlobalData if null
      */
 	public static synchronized GlobalData getInstance() {
-        if (globalData == null) {
-            globalData = new GlobalData();
-            
-            paused = true;
-            FPS = 0;
-            unpausedFPS = TimerPanel.getInitialFPS();
-            
-            mutationRate = 0.1;
-            
-            maxSight = 40;
-            
-            randomFoodSpawn = true;
-            foodEnergy = 10;
-            maxFoodAge = TimerPanel.minsToFrames(25);
-            
-            
-            numFoodSpawn = 20;
-            foodRespawnTime = TimerPanel.minsToFrames(20);
-            maxNumFood = 100;
-            
-        	gridPanel = new GridPanel();
-        	frame = new JFrame();
-            entities = new EntityCollection();
-            newEntities = new ArrayList<Entity>();
-            timerPanel = new TimerPanel();
-            settingsPane = new SettingsPane();
-        }
         return globalData;
     }
 	
@@ -113,15 +108,16 @@ public class GlobalData {
 			behaviors2[i] = Behavior.eat;
 			behaviors3[i] = Behavior.idle;;
 		}
-		entities.addCreature(new Creature(0, 0, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors3), new Schedule(behaviors3), null, null));
-		entities.addCreature(new Creature(47, 0, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors3), new Schedule(behaviors3), null, null));
-		entities.addCreature(new Creature(47, 35, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors3), new Schedule(behaviors3), null, null));
-		entities.addCreature(new Creature(0, 35, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors3), new Schedule(behaviors3), null, null));
+        entities = new EntityCollection();
+		entities.addEntity(new Creature(0, 0, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors3), new Schedule(behaviors3), null, null));
+		entities.addEntity(new Creature(47, 0, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors3), new Schedule(behaviors3), null, null));
+		entities.addEntity(new Creature(47, 35, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors3), new Schedule(behaviors3), null, null));
+		entities.addEntity(new Creature(0, 35, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors3), new Schedule(behaviors3), null, null));
 
 		
-		entities.addCreature(new Creature(4, 4, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
-		entities.addCreature(new Creature(10, 8, new Color(0, 100, 100), 10, 100, 200, 20, 15, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
-		entities.addCreature(new Creature(30, 4, new Color(200, 0, 255), 10, 100, 200, 20, 15, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
+		entities.addEntity(new Creature(4, 4, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
+		entities.addEntity(new Creature(10, 8, new Color(0, 100, 100), 10, 100, 200, 20, 15, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
+		entities.addEntity(new Creature(30, 4, new Color(200, 0, 255), 10, 100, 200, 20, 15, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
 
 	}
 	
@@ -180,6 +176,9 @@ public class GlobalData {
 	 Return frame
 	 */
 	public JFrame getFrame() {
+		if (frame == null) {
+	    	frame = new JFrame();
+		}
 		return frame;
 	}
 	
@@ -187,6 +186,9 @@ public class GlobalData {
 	 Return GridPanel
 	 */
 	public GridPanel getGridPanel() {
+		if (gridPanel == null) {
+	    	gridPanel = new GridPanel();
+		}
 		return gridPanel;
 	}
 	
@@ -194,6 +196,9 @@ public class GlobalData {
 	 Return SettingsPane
 	 */
 	public SettingsPane getSettingsPane() {
+		if (settingsPane == null) {
+	        settingsPane = new SettingsPane();
+		}
 		return settingsPane;
 	}
 	
@@ -201,6 +206,9 @@ public class GlobalData {
 	 Return EntityCollection
 	 */
 	public EntityCollection getEntities() {
+		if (entities == null) {
+	        entities = new EntityCollection();
+		}
 		return entities;
 	}
 	
@@ -222,6 +230,9 @@ public class GlobalData {
 	 Return timerPanel
 	 */
 	public TimerPanel getTimerPanel() {
+		if (timerPanel == null) {
+	        timerPanel = new TimerPanel();
+		}
 		return timerPanel;
 	}
 	
