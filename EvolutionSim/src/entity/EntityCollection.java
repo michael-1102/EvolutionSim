@@ -17,7 +17,7 @@ public class EntityCollection {
 	static private int dirY[] = { 0, 1, 0, -1 };
 	
 	/*
-	 FoodList constructor
+	 EntityCollection constructor
 	 */
 	public EntityCollection() {
 		entities = new ArrayList<Entity>();
@@ -39,19 +39,12 @@ public class EntityCollection {
 	}
 	
 	/*
-	 Add creature to ArrayList
+	 Add entity to ArrayList
 	 */
-	public void addCreature(Creature creature) {
-		entities.add(creature);
+	public void addEntity(Entity entity) {
+		entities.add(entity);
 	}
 	
-	
-	/*
-	 Add food to ArrayList
-	 */
-	public void addFood(Food food) {
-		entities.add(food);
-	}
 	
 	
 	
@@ -95,7 +88,7 @@ public class EntityCollection {
 						return;
 					}
 				}
-				addFood(new Food(newX, newY));
+				addEntity(new Food(newX, newY));
 			}
 		}
 	}
