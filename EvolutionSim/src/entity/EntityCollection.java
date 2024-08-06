@@ -46,8 +46,6 @@ public class EntityCollection {
 	}
 	
 	
-	
-	
 	/*
 	 Update entities every frame
 	 */
@@ -137,7 +135,7 @@ public class EntityCollection {
 	}
 	
 	/*
-	 Draw foods every frame
+	 Draw entities every frame
 	 */
 	public void draw(Graphics2D g2) {
 		Object[] arr = entities.toArray();
@@ -153,7 +151,7 @@ public class EntityCollection {
 	public int posHasFood(int x, int y) {
 		for (int i = 0; i < entities.size(); i++) {
 			if (entities.get(i) != null) {
-				if (entities.get(i) instanceof Food && entities.get(i).posX == x && entities.get(i).posY == y) {
+				if (entities.get(i) instanceof Food && entities.get(i).getPosX() == x && entities.get(i).getPosY() == y) {
 					if (!((Food)entities.get(i)).isDead())
 						return i;
 				}
@@ -168,7 +166,7 @@ public class EntityCollection {
 	public boolean posEmpty(int x, int y) {
 		for (int i = 0; i < entities.size(); i++) {
 			if (entities.get(i) != null) {
-				if (entities.get(i).posX == x && entities.get(i).posY == y) {
+				if (entities.get(i).getPosX() == x && entities.get(i).getPosY() == y) {
 					return false;
 				}
 			}
@@ -182,7 +180,7 @@ public class EntityCollection {
 	public boolean posNotSolid(int x, int y) {
 		for (int i = 0; i < entities.size(); i++) {
 			if (entities.get(i) != null) {
-				if (entities.get(i).posX == x && entities.get(i).posY == y && entities.get(i).hasCollision()) {
+				if (entities.get(i).getPosX() == x && entities.get(i).getPosY() == y && entities.get(i).hasCollision()) {
 					return false;
 				}
 			}
@@ -197,7 +195,7 @@ public class EntityCollection {
 	public Entity getCreature(int x, int y) {
 		for (int i = 0; i < entities.size(); i++) {
 			if (entities.get(i) != null) {
-				if (entities.get(i) instanceof Creature && entities.get(i).posX == x && entities.get(i).posY == y) {
+				if (entities.get(i) instanceof Creature && entities.get(i).getPosX() == x && entities.get(i).getPosY() == y) {
 					return entities.get(i);
 				}
 			}
@@ -205,22 +203,4 @@ public class EntityCollection {
 		return new Entity(x, y);
 	}
 	
-	/*
-	 Remove entity from ArrayList using index
-	 */
-	public boolean removeEntity(int i) {
-		if (i >= 0) {
-			entities.remove(i);
-			return true;
-		} else {
-			return false;
-		}
-	}
-	
-	/*
-	 Remove food from ArrayList using Food object
-	 */
-	public boolean removeFood(Food food) {
-		return entities.remove(food);
-	}
 }

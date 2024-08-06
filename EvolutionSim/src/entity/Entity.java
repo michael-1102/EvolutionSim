@@ -4,8 +4,8 @@ import java.awt.Graphics2D;
 
 public class Entity {
 
-	protected int posX;
-	protected int posY;
+	private int posX;
+	private int posY;
 	/*
 	 Entity constructor
 	 */
@@ -22,29 +22,26 @@ public class Entity {
 		return posY;
 	}
 	
-	/*
-	 Overridden
-	 */
+	public void setPosX(int x) {
+		posX = x;
+	}
+	
+	public void setPosY(int y) {
+		posY = y;
+	}
+	
+
 	public void draw(Graphics2D g2) {
 	}
 
-	/*
-	 Overridden
-	 */
 	public void update() {
 		
 	}
 	
-	/*
-	 Overridden
-	 */
 	public boolean isDead() {
 		return false;
 	}
 	
-	/*
-	 Overridden
-	 */
 	public boolean hasCollision() {
 		return false;
 	}

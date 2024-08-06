@@ -281,7 +281,7 @@ public class CreatureViewer extends JDialog {
 		}
 	}
 	public void update() {
-		positionLabel.setText("X: " + creature.posX + "   Y: " + creature.posY);
+		positionLabel.setText("X: " + creature.getPosX() + "   Y: " + creature.getPosY());
 		energyLabel.setText("Energy: " + creature.getEnergy());
 	}
 	

@@ -128,7 +128,7 @@ public class Creature extends Entity implements ActionListener {
 		
 		button = new JButton();
 		int tileSize = globalData.getTileSize();
-		button.setBounds(posX*tileSize, posY*tileSize, tileSize, tileSize);
+		button.setBounds(this.getPosX()*tileSize, this.getPosY()*tileSize, tileSize, tileSize);
 		button.setFocusable(false);
 		button.setContentAreaFilled(false);
 		button.addActionListener(this);
@@ -250,9 +250,9 @@ public class Creature extends Entity implements ActionListener {
 	@Override
 	public void draw(Graphics2D g2) {
 		int tileSize = globalData.getTileSize();
-		button.setBounds(posX*tileSize, posY*tileSize, tileSize, tileSize);
+		button.setBounds(this.getPosX()*tileSize, this.getPosY()*tileSize, tileSize, tileSize);
 		g2.setColor(color);
-		g2.fillRect(posX*tileSize, posY*tileSize, tileSize, tileSize);
+		g2.fillRect(this.getPosX()*tileSize, this.getPosY()*tileSize, tileSize, tileSize);
 	}
 	
 	/*
@@ -425,7 +425,7 @@ public class Creature extends Entity implements ActionListener {
 	public boolean isDead() {
 		if (energy <= 0) {
 			globalData.getGridPanel().remove(button);
-			viewer.setVisible(false);
+			//viewer.setVisible(false);
 			return true;
 		}
 		return false;
@@ -459,7 +459,7 @@ public class Creature extends Entity implements ActionListener {
 		
 		// check for food
 		EntityCollection entities = globalData.getEntities();
-		int foodIndex = entities.posHasFood(posX, posY);
+		int foodIndex = entities.posHasFood(this.getPosX(), this.getPosY());
 		if (foodIndex >= 0) {
 			this.eatFood(entities, foodIndex);
 		}
@@ -551,7 +551,7 @@ public class Creature extends Entity implements ActionListener {
 		Schedule babyBackupSchedule = this.backupSchedule.getBabySchedule(mate.backupSchedule);
 
 		
-		int[] babyPos = this.getBabyPos(new int[] {mate.posX, mate.posY});
+		int[] babyPos = this.getBabyPos(new int[] {mate.getPosX(), mate.getPosY()});
 		if (babyPos.length == 2) {
 			Creature baby = new Creature(babyPos[0], babyPos[1], babyColor, babySlowness, babyEnergy, babyMaxEnergy, babyDaySight, babyMaxEnergyDuringMating, babyMateCooldown, babySchedule, babyBackupSchedule, this, mate);
 			baby.setCurrentMateCooldown(babyMateCooldown);
@@ -607,8 +607,8 @@ public class Creature extends Entity implements ActionListener {
 		Collections.shuffle(dirOptions);
 		int[] babyPos = new int[2];
 		for (int i = 0; i < 4; i++) { // check positions next to one parent
-			babyPos[0] = posX+dirX[dirOptions.get(i)];
-			babyPos[1] = posY+dirY[dirOptions.get(i)];
+			babyPos[0] = this.getPosX()+dirX[dirOptions.get(i)];
+			babyPos[1] = this.getPosY()+dirY[dirOptions.get(i)];
 			if (babyPos[0] < globalData.getMaxScreenCol() - 1 && babyPos[0] > 0 && babyPos[1] < globalData.getMaxScreenRow() - 1 && babyPos[1] > 0)
 				if (globalData.getEntities().posNotSolid(babyPos[0], babyPos[1])) {
 					return babyPos;
@@ -688,9 +688,9 @@ public class Creature extends Entity implements ActionListener {
 			return;
 		}
 		
-		Entity mate = mateBFS(new boolean[globalData.getMaxScreenCol()][globalData.getMaxScreenRow()], posX, posY);
+		Entity mate = mateBFS(new boolean[globalData.getMaxScreenCol()][globalData.getMaxScreenRow()], this.getPosX(), this.getPosY());
 		if (mate instanceof Creature) {
-			int[] matePos = {mate.posX, mate.posY};
+			int[] matePos = {mate.getPosX(), mate.getPosY()};
 			if (this.getDistance(matePos) == 1) {
 				this.setMate((Creature)mate);
 				((Creature)mate).setMate(this);
@@ -708,14 +708,14 @@ public class Creature extends Entity implements ActionListener {
 	}
 	
 	private int getDistance(int[] pos) {
-		return Math.abs(pos[0] - posX)  + Math.abs(pos[1] - posY);
+		return Math.abs(pos[0] - this.getPosX())  + Math.abs(pos[1] - this.getPosY());
 	}
 	
 	/*
 	 Move creature towards food
 	 */
 	private void moveToFood() {
-		int[] foodPos = foodBFS(new boolean[globalData.getMaxScreenCol()][globalData.getMaxScreenRow()], posX, posY);
+		int[] foodPos = foodBFS(new boolean[globalData.getMaxScreenCol()][globalData.getMaxScreenRow()], this.getPosX(), this.getPosY());
 		if (foodPos.length == 2) {
 			
 			int[] nextStep = findNextStep(foodPos);
@@ -746,7 +746,7 @@ public class Creature extends Entity implements ActionListener {
 	private int[] findNextStep(int[] foodPos) {
 		openList = new ArrayList<Node>();
 		this.initializeNodes();
-		this.setStartNode(posX, posY);
+		this.setStartNode(this.getPosX(), this.getPosY());
 		this.setGoalNode(foodPos[0], foodPos[1]);
 		this.setCostOnNodes();
 		if (this.search())
@@ -853,8 +853,8 @@ public class Creature extends Entity implements ActionListener {
 	private void moveRandom() {
 		Collections.shuffle(dirOptions);
 		for (int i = 0; i < 4; i++) {
-				int newX = posX+dirX[dirOptions.get(i)];
-				int newY = posY+dirY[dirOptions.get(i)];
+				int newX = this.getPosX()+dirX[dirOptions.get(i)];
+				int newY = this.getPosY()+dirY[dirOptions.get(i)];
 				if (isValid(newX, newY) && globalData.getEntities().posEmpty(newX, newY)) {
 					this.moveCreature(newX, newY);
 					return;
@@ -867,8 +867,8 @@ public class Creature extends Entity implements ActionListener {
 	 */
 	private void moveCreature(int x, int y) {
 		// add fatigue
-		posX = x;
-		posY = y;
+		this.setPosX(x);
+		this.setPosY(y);
 		energy--;
 	}
 	

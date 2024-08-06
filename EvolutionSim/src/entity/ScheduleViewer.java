@@ -116,7 +116,6 @@ public class ScheduleViewer extends JDialog {
 				time = new JLabel(TimerPanel.getTimeFromIndex(i, scheduleArr.length));
 				time.setVerticalAlignment(JLabel.TOP);
 				schedulePanel.add(time, c);
-
 			}
 			boolean isEndOfHour = i % c.gridheight == c.gridheight - 1;
 			c.gridheight = 1;
