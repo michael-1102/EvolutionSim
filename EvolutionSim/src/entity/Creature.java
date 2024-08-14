@@ -14,6 +14,7 @@ import java.util.Random;
 
 
 import javax.swing.JButton;
+import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 
 import main.GlobalData;
@@ -84,7 +85,6 @@ public class Creature extends Entity implements ActionListener {
 		
 		creatureNum = nextCreatureNum;
 		nextCreatureNum++;
-		
 		if (!(parent1 == null || parent2 == null)) {
 			if (parent1.creatureNum < parent2.creatureNum) { // parent1 should be parent with lower creature number
 				this.parent1 = parent1;
@@ -98,6 +98,7 @@ public class Creature extends Entity implements ActionListener {
 		} else {
 			generation = 1;
 		}
+		
 		offspring = new ArrayList<Creature>();
 		globalData = GlobalData.getInstance();
 		
@@ -124,8 +125,7 @@ public class Creature extends Entity implements ActionListener {
 		behavior = Behavior.idle;
 		borderColor = new Color(Math.abs(color.getRed() - 255), Math.abs(color.getGreen() - 255), Math.abs(color.getBlue() - 255));
 		
-		viewer = new CreatureViewer(this);
-		
+
 		button = new JButton();
 		int tileSize = globalData.getTileSize();
 		button.setBounds(this.getPosX()*tileSize, this.getPosY()*tileSize, tileSize, tileSize);
@@ -137,17 +137,25 @@ public class Creature extends Entity implements ActionListener {
 		
 		button.addMouseListener(new java.awt.event.MouseAdapter() {
 		    public void mouseEntered(java.awt.event.MouseEvent evt) {
-		    	button.setBorder(new LineBorder(borderColor));
+			    button.setBorder(new LineBorder(borderColor));
 		    }
 
 		    public void mouseExited(java.awt.event.MouseEvent evt) {
-		    	if (!highlighted)
-		    		button.setBorder(null);
+				if (!highlighted)
+					button.setBorder(null);		
 		    }
 		});
 		
-		globalData.getGridPanel().add(button);
-			
+		
+		try {
+			SwingUtilities.invokeAndWait(new Runnable() {
+				public void run() {
+					globalData.getGridPanel().add(button);
+				}
+			});
+		} catch (Exception e) {
+	        e.printStackTrace();
+		}	
 	}
 	
 	/*
@@ -249,8 +257,10 @@ public class Creature extends Entity implements ActionListener {
 	 */
 	@Override
 	public void draw(Graphics2D g2) {
+		int posX = this.getPosX();
+		int posY = this.getPosY();
 		int tileSize = globalData.getTileSize();
-		button.setBounds(this.getPosX()*tileSize, this.getPosY()*tileSize, tileSize, tileSize);
+		button.setBounds(posX*tileSize, posY*tileSize, tileSize, tileSize);
 		g2.setColor(color);
 		g2.fillRect(this.getPosX()*tileSize, this.getPosY()*tileSize, tileSize, tileSize);
 	}
@@ -276,6 +286,8 @@ public class Creature extends Entity implements ActionListener {
 	}  
 	
 	public void openViewer() {
+		if (viewer == null)
+			viewer = new CreatureViewer(this);
 		viewer.setVisible(true);
 	}
 	
@@ -424,8 +436,16 @@ public class Creature extends Entity implements ActionListener {
 	 */
 	public boolean isDead() {
 		if (energy <= 0) {
-			globalData.getGridPanel().remove(button);
-			//viewer.setVisible(false);
+			try {
+				SwingUtilities.invokeAndWait(new Runnable() {
+					public void run() {
+						globalData.getGridPanel().remove(button);
+						//viewer.setVisible(false);
+					}
+				});
+			} catch (Exception e) {
+		        e.printStackTrace();
+			}
 			return true;
 		}
 		return false;
@@ -436,7 +456,9 @@ public class Creature extends Entity implements ActionListener {
 	 */
 	@Override
 	public void update() {
-		// add hunger
+		super.update();
+		
+		// TODO: add hunger
 		
 		triedBackupBehavior = false;
 		
@@ -456,20 +478,24 @@ public class Creature extends Entity implements ActionListener {
 		if (currentMateCooldown > 0) {
 			currentMateCooldown--;
 		}
-		
-		// check for food
-		EntityCollection entities = globalData.getEntities();
-		int foodIndex = entities.posHasFood(this.getPosX(), this.getPosY());
-		if (foodIndex >= 0) {
-			this.eatFood(entities, foodIndex);
+		;
+		try {
+			SwingUtilities.invokeAndWait(new Runnable() {
+				public void run() {
+					// update viewer
+					if (viewer != null) viewer.update();
+				}
+			});
+		} catch (Exception e) {
+	        e.printStackTrace();
 		}
-		
-		// update viewer
-		viewer.update();
+		if (isDead()) {
+			globalData.getEntities().setNull(this.getPosX(), this.getPosY());
+		}
 	}
 	
 	private void doNothing() {
-		// remove fatigue
+		// TODO: remove fatigue
 	}
 	
 	/*
@@ -555,7 +581,9 @@ public class Creature extends Entity implements ActionListener {
 		if (babyPos.length == 2) {
 			Creature baby = new Creature(babyPos[0], babyPos[1], babyColor, babySlowness, babyEnergy, babyMaxEnergy, babyDaySight, babyMaxEnergyDuringMating, babyMateCooldown, babySchedule, babyBackupSchedule, this, mate);
 			baby.setCurrentMateCooldown(babyMateCooldown);
-			globalData.getNewEntities().add(baby);
+			baby.setUpToDate(true);
+			baby.checkForFood(babyPos[0], babyPos[1]);
+			globalData.getEntities().addEntity(baby);
 			offspring.add(baby);
 			mate.offspring.add(baby);
 		}
@@ -658,13 +686,11 @@ public class Creature extends Entity implements ActionListener {
 	}
 	
 	/*
-	 Eat food at EntityCollection index
+	 Eat food
 	 */
-	private void eatFood(EntityCollection foods, int i) {
-		// remove hunger
-		Food food = (Food) foods.getEntity(i);
-		if (food.isDead()) return;
-		food.assertEaten();
+	private void eatFood() {
+		// TODO: remove hunger
+		globalData.getEntities().decrementNumFood();
 		energy += globalData.getFoodEnergy();
 		if (energy > maxEnergy)
 			energy = maxEnergy;
@@ -756,19 +782,6 @@ public class Creature extends Entity implements ActionListener {
 	}
 	
 	/*
-	 returns true if location is not visited and within the screen
-	 */
-	private boolean isValid(boolean visited[][], int x, int y) {
-		if (x < 0 || y < 0 || x >= globalData.getMaxScreenCol() || y>= globalData.getMaxScreenRow()) {
-			return false;
-		}
-		if (visited[x][y]) {
-			return false;
-		}
-		return true;
-	}
-	
-	/*
 	 returns true if location is within the screen
 	 */
 	private boolean isValid(int x, int y) {
@@ -786,7 +799,7 @@ public class Creature extends Entity implements ActionListener {
 		while (!q.isEmpty()) {
 			foodPos = q.peek();
 			if (Math.abs(foodPos[0] - x) + Math.abs(foodPos[1] - y) > sight) return new int[0];
-			if (globalData.getEntities().posHasFood(foodPos[0], foodPos[1]) >= 0) {
+			if (globalData.getEntities().getEntity(foodPos[0], foodPos[1]) instanceof Food) {
 				return foodPos;
 			}
 			
@@ -796,7 +809,7 @@ public class Creature extends Entity implements ActionListener {
 			for (int i = 0; i < 4; i++) {
 				int adjx = foodPos[0] + dirX[i];
 				int adjy = foodPos[1] + dirY[i];
-				if (isValid(visited, adjx, adjy)) {
+				if (globalData.getEntities().isValid(visited, adjx, adjy)) {
 					list.add(new int[] {adjx, adjy});
 					visited[adjx][adjy] = true;
 				}
@@ -820,7 +833,7 @@ public class Creature extends Entity implements ActionListener {
 		while (!q.isEmpty()) {
 			matePos = q.peek();
 			if (Math.abs(matePos[0] - x) + Math.abs(matePos[1] - y) > sight) return new Entity(0, 0);
-			Entity entity = globalData.getEntities().getCreature(matePos[0], matePos[1]);
+			Entity entity = globalData.getEntities().getEntity(matePos[0], matePos[1]);
 			if (entity instanceof Creature && !entity.equals(this)) {
 				if (((Creature)entity).behavior.equals(Behavior.findMate) && ((Creature)entity).getCurrentMateCooldown() <= 0) {
 					return entity;
@@ -834,7 +847,7 @@ public class Creature extends Entity implements ActionListener {
 			for (int i = 0; i < 4; i++) {
 				int adjx = matePos[0] + dirX[i];
 				int adjy = matePos[1] + dirY[i];
-				if (isValid(visited, adjx, adjy)) {
+				if (globalData.getEntities().isValid(visited, adjx, adjy)) {
 					list.add(new int[] {adjx, adjy});
 					visited[adjx][adjy] = true;
 				}
@@ -866,10 +879,24 @@ public class Creature extends Entity implements ActionListener {
 	 Move creature to X and Y value
 	 */
 	private void moveCreature(int x, int y) {
-		// add fatigue
+		//TODO: add fatigue
+		this.checkForFood(x, y);
+		globalData.getEntities().moveEntity(this, x, y);
 		this.setPosX(x);
 		this.setPosY(y);
 		energy--;
+		
+		
+	}
+	
+	/*
+	 Eat food if it is on x, y
+	 */
+	private void checkForFood(int x, int y) {
+		Entity entity = globalData.getEntities().getEntity(x, y);
+		if (entity instanceof Food) {
+			this.eatFood();
+		}
 	}
 	
 	/*

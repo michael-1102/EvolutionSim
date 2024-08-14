@@ -179,9 +179,13 @@ public class TimerPanel extends JPanel implements ActionListener {
 		dayLabel.setText("Day " + dayCount);
 		int mins =(int) (1.0*minsInDay/fullDayLength * time);
 		timeLabel.setText(getTimeString(mins));
-		int colorVal = (int) Math.abs(255.0/dayLength * ((time+dayLength) % fullDayLength - dayLength));
-		GridPanel gridPanel = globalData.getGridPanel();
-		gridPanel.setBackground(new Color(colorVal, colorVal, colorVal));
+	}
+	
+	public int getSkyAlpha() {
+		int maxAlpha = 150;
+		return 0;
+		//TODO: calculate alpha based on time of day
+		//return (int) (-1*Math.abs(255.0/dayLength * ((time+dayLength) % fullDayLength - dayLength))) + 255;
 	}
 	
 	public int getTime() {

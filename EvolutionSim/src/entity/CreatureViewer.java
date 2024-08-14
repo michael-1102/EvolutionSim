@@ -93,7 +93,6 @@ public class CreatureViewer extends JDialog {
 	
 	public CreatureViewer(Creature creature) {
 		this.creature = creature;
-		this.scheduleViewer = new ScheduleViewer(creature, creature.getSchedule(), creature.getBackupSchedule());
 		this.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
 		this.setResizable(true);
 		this.setTitle("Creature Viewer");
@@ -209,7 +208,7 @@ public class CreatureViewer extends JDialog {
 		scheduleButton.addActionListener((new ActionListener() {
 		    @Override
 		    public void actionPerformed(ActionEvent evt) {
-		    	scheduleViewer.setVisible(true);
+		    	openSchedule();
 		    }
 		}));
 		
@@ -283,6 +282,11 @@ public class CreatureViewer extends JDialog {
 	public void update() {
 		positionLabel.setText("X: " + creature.getPosX() + "   Y: " + creature.getPosY());
 		energyLabel.setText("Energy: " + creature.getEnergy());
+	}
+	private void openSchedule() {
+		if (scheduleViewer == null)
+			this.scheduleViewer = new ScheduleViewer(creature, creature.getSchedule(), creature.getBackupSchedule());
+    	scheduleViewer.setVisible(true);
 	}
 	
 }

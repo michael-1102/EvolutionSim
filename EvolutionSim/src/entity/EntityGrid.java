@@ -10,71 +10,108 @@ import java.util.Random;
 
 import main.GlobalData;
 
-public class EntityCollection {
-	private ArrayList<Entity> entities;
+public class EntityGrid {
+	private Entity[][] entities;
 	private GlobalData globalData;
+	private int numFood;
+	private ArrayList<Integer> xVals;
+	private ArrayList<Integer> yVals;
 	static private int dirX[] = { -1, 0, 1, 0 };
 	static private int dirY[] = { 0, 1, 0, -1 };
+	
 	
 	/*
 	 EntityCollection constructor
 	 */
-	public EntityCollection() {
-		entities = new ArrayList<Entity>();
+	public EntityGrid() {
+		numFood = 0;
 		globalData = GlobalData.getInstance();
+		entities = new Entity[globalData.getMaxScreenCol()][globalData.getMaxScreenRow()];
+		xVals = new ArrayList<Integer>();
+		yVals = new ArrayList<Integer>();
+		for (int i = 0; i < globalData.getMaxScreenCol(); i++) {
+			xVals.add(i);
+		}
+		for (int i = 0; i < globalData.getMaxScreenRow(); i++) {
+			yVals.add(i);
+		}
 	}
-	
+
 	/*
-	 Get ArrayList of entities
-	 */
-	public ArrayList<Entity> getEntities() {
-		return entities;
-	}
-	
-	/*
-	 Get entity at index
-	 */
-	public Entity getEntity(int i) {
-		return entities.get(i);
-	}
-	
-	/*
-	 Add entity to ArrayList
+	 Add entity at its posX, posY
 	 */
 	public void addEntity(Entity entity) {
-		entities.add(entity);
+		entities[entity.getPosX()][entity.getPosY()] = entity;
+		if (entity instanceof Food)
+			numFood++;
 	}
 	
+	/*
+	 Set x,y to null
+	 */
+	public void setNull(int x, int y) {
+		entities[x][y] = null;
+	}
 	
+	/*
+	 Move entity from previous location to new x, y
+	 */
+	public void moveEntity(Entity entity, int newX, int newY) {
+		entities[entity.getPosX()][entity.getPosY()] = null;
+		entities[newX][newY] = entity;
+	}
+	
+	/*
+	 Get entity at x, y
+	 */
+	public Entity getEntity(int x, int y) {
+		if (entities[x][y] != null)
+			return entities[x][y];
+		else
+			return new Entity(x, y);
+	}
+	
+	/*
+	 Lower number of food by 1
+	 */
+	public void decrementNumFood() {
+		numFood--;
+	}
+
 	/*
 	 Update entities every frame
 	 */
 	public void update() {
-		Collections.shuffle(entities);
-		for (Iterator<Entity> iterator = entities.iterator(); iterator.hasNext();) {
-		    Entity entity = iterator.next();
-		    entity.update();
+		Collections.shuffle(xVals);
+		for (int i = 0; i < entities.length; i++) {
+			Collections.shuffle(yVals);
+			for (int j = 0; j < entities[i].length; j++) {
+				if (entities[xVals.get(i)][yVals.get(j)] != null)
+					if (!entities[xVals.get(i)][yVals.get(j)].isUpToDate())
+						entities[xVals.get(i)][yVals.get(j)].update();
+			}
 		}
 		
-		// remove dead entities
-		entities.removeIf(x -> x.isDead());
-		
-		// add new entities
-		for (Entity entity : globalData.getNewEntities()) {
-			entities.add(entity);
+		for (int i = 0; i < entities.length; i++) {
+			for (int j = 0; j < entities[i].length; j++) {
+				if (entities[i][j] != null)
+					entities[i][j].setUpToDate(false);
+			}
 		}
-		globalData.getNewEntities().clear();
-		
-		// respawn food
+				
+		respawnFood();
+	}
+	
+	public void respawnFood() {
 		if (globalData.getTimerPanel().getTime() % globalData.getFoodRespawnTime() == 0 && globalData.doesRandomFoodSpawn()) {
 			int newX, newY;
 			for (int i = 0; i < globalData.getNumFoodSpawn(); i++) {
-				if (entities.size() >= globalData.getMaxNumFood()) {
+				if (numFood >= globalData.getMaxNumFood()) {
 					return;
 				}
 				int maxScreenCol = globalData.getMaxScreenCol();
 				int maxScreenRow = globalData.getMaxScreenRow();
-
+				
 				newX = (int)(Math.random() * maxScreenCol); 
 				newY = (int)(Math.random() * maxScreenRow);
 				if (!this.posEmpty(newX, newY)) {
@@ -86,12 +123,12 @@ public class EntityCollection {
 						return;
 					}
 				}
-				addEntity(new Food(newX, newY));
+				this.addEntity(new Food(newX, newY));
 			}
 		}
 	}
 	
-	private boolean isValid(boolean visited[][], int x, int y) {
+	public boolean isValid(boolean visited[][], int x, int y) {
 		if (x < 0 || y < 0 || x >= globalData.getMaxScreenCol() || y>= globalData.getMaxScreenRow()) {
 			return false;
 		}
@@ -138,69 +175,33 @@ public class EntityCollection {
 	 Draw entities every frame
 	 */
 	public void draw(Graphics2D g2) {
-		Object[] arr = entities.toArray();
-		for (Object entity : arr) {
-			if (entity != null)
-				((Entity)entity).draw(g2);
-		}
-	}
-	
-	/*
-	 Return index of food if there is food at x and y position, return -1 otherwise
-	 */
-	public int posHasFood(int x, int y) {
-		for (int i = 0; i < entities.size(); i++) {
-			if (entities.get(i) != null) {
-				if (entities.get(i) instanceof Food && entities.get(i).getPosX() == x && entities.get(i).getPosY() == y) {
-					if (!((Food)entities.get(i)).isDead())
-						return i;
+		for (int i = 0; i < entities.length; i++) {
+			for (int j = 0; j < entities[i].length; j++) {
+				Entity entity = entities[i][j];
+				if (entity != null) {
+					entity.draw(g2);
 				}
 			}
 		}
-		return -1;
 	}
+	
 	
 	/*
 	 Return true if x and y position is empty
 	 */
 	public boolean posEmpty(int x, int y) {
-		for (int i = 0; i < entities.size(); i++) {
-			if (entities.get(i) != null) {
-				if (entities.get(i).getPosX() == x && entities.get(i).getPosY() == y) {
-					return false;
-				}
-			}
-		}
-		return true;
+		return (entities[x][y] == null);
 	}
 	
 	/*
 	 Return true if position is not solid
 	 */
 	public boolean posNotSolid(int x, int y) {
-		for (int i = 0; i < entities.size(); i++) {
-			if (entities.get(i) != null) {
-				if (entities.get(i).getPosX() == x && entities.get(i).getPosY() == y && entities.get(i).hasCollision()) {
-					return false;
-				}
-			}
+		if (entities[x][y] != null) {
+			return !entities[x][y].hasCollision();
 		}
 		return true;
 	}
 	
-	
-	/*
-	 Return creature if there is one at x and y value
-	 */
-	public Entity getCreature(int x, int y) {
-		for (int i = 0; i < entities.size(); i++) {
-			if (entities.get(i) != null) {
-				if (entities.get(i) instanceof Creature && entities.get(i).getPosX() == x && entities.get(i).getPosY() == y) {
-					return entities.get(i);
-				}
-			}
-		}
-		return new Entity(x, y);
-	}
 	
 }

@@ -13,7 +13,8 @@ import javax.swing.JFrame;
 import entity.Behavior;
 import entity.Creature;
 import entity.Entity;
-import entity.EntityCollection;
+import entity.EntityGrid;
+import entity.Food;
 import entity.Schedule;
 import entity.Wall;
 
@@ -23,12 +24,10 @@ public class GlobalData {
     private GridPanel gridPanel;
     private JFrame frame;
 
-	private EntityCollection entities;
+	private EntityGrid entities;
 	private TimerPanel timerPanel;
 	private SettingsPane settingsPane;
-	
-	private ArrayList<Entity> newEntities;
-	
+		
 	private boolean paused;
 	
 	//SCREEN SIZE VALUES
@@ -77,9 +76,7 @@ public class GlobalData {
         numFoodSpawn = 20;
         foodRespawnTime = TimerPanel.minsToFrames(20);
         maxNumFood = 100;
-        
-        newEntities = new ArrayList<Entity>();
-	}
+  	}
 	
     /*
      Get instance of GlobalData
@@ -107,9 +104,9 @@ public class GlobalData {
 			behaviors1[i] = Behavior.findMate;
 			behaviors2[i] = Behavior.eat;
 		}
-        entities = new EntityCollection();
-		
-		entities.addEntity(new Creature(4, 4, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
+        entities = new EntityGrid();
+	
+		entities.addEntity(new Creature(0, 1, new Color(255, 0, 23), 10, 100, 200, 20, 15, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
 		entities.addEntity(new Creature(10, 8, new Color(0, 100, 100), 10, 100, 200, 20, 15, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
 		entities.addEntity(new Creature(30, 4, new Color(200, 0, 255), 10, 100, 200, 20, 15, 500, new Schedule(behaviors1), new Schedule(behaviors2), null, null));
 
@@ -201,20 +198,13 @@ public class GlobalData {
 	}
 	
 	/*
-	 Return EntityCollection
+	 Return EntityGrid
 	 */
-	public EntityCollection getEntities() {
+	public EntityGrid getEntities() {
 		if (entities == null) {
-	        entities = new EntityCollection();
+	        entities = new EntityGrid();
 		}
 		return entities;
-	}
-	
-	/*
-	 Return new entities
-	 */
-	public ArrayList<Entity> getNewEntities() {
-		return newEntities;
 	}
 	
 	/*
