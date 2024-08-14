@@ -477,8 +477,7 @@ public class Creature extends Entity implements ActionListener {
 		
 		if (currentMateCooldown > 0) {
 			currentMateCooldown--;
-		}
-		;
+		};
 		try {
 			SwingUtilities.invokeAndWait(new Runnable() {
 				public void run() {

@@ -187,7 +187,7 @@ public class TimerPanel extends JPanel implements ActionListener {
 		//TODO: calculate alpha based on time of day
 		//return (int) (-1*Math.abs(255.0/dayLength * ((time+dayLength) % fullDayLength - dayLength))) + 255;
 	}
-	
+
 	public int getTime() {
 		return time;
 	}

@@ -73,7 +73,7 @@ public class GridPanel extends JPanel implements Runnable {
 		g2.setColor(new Color(0, 0, 0,  globalData.getTimerPanel().getSkyAlpha()));
 		System.out.println(globalData.getTimerPanel().getSkyAlpha());
 		g2.fillRect(0, 0, globalData.getScreenWidth(), globalData.getScreenHeight());
-		//g2.dispose();
+		this.setBackground(Color.black);
+		this.setDoubleBuffered(true);
 	}
-	
 }
